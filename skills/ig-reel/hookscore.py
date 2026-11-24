@@ -168,7 +168,8 @@ ES = {
         r"|pesos\b|mil\b|millones\b)?",
         re.IGNORECASE),
     # Una mayúscula detrás de ¿ o ¡ es inicio de frase, no un nombre propio.
-    "proper_re": re.compile(r"(?<!^)(?<![¿¡])\b[" + UPPER + r"][" + LOWER + r"]{2,}\b"),
+    "proper_re": re.compile(r"(?<!^)(?<![¿¡])(?<![.!?] )(?<![.!?]\n)\b[" + UPPER + r"]["
+                           + LOWER + r"]{2,}\b"),
     # Números dichos en voz alta. "uno", "una" y "primer" no están a propósito:
     # casi siempre son relleno, no una cantidad.
     "spoken_numbers": {
@@ -226,8 +227,10 @@ ES = {
         "lee", "guarda", "usa", "haz", "crea", "escribe", "manda", "envia", "toma",
         "empieza", "nunca", "siempre", "no", "pon", "revisa", "apunta", "olvida",
         "evita", "cambia", "sube", "cobra", "publica", "graba", "corta", "quita",
-        "aprende", "fijate",
+        "aprende", "fijate", "di", "pide", "piensa", "imagina", "dejad", "ve",
     },
+    # Imperativo con pronombre pegado: "róbame", "guárdalo", "dímelo".
+    "enclitic_re": re.compile(r"^(\w{2,}?)(?:me|te|lo|la|los|las|le|les|nos|melo|mela|telo|tela)$"),
     # Español omite el pronombre, así que se buscan también formas verbales de
     # segunda persona. Se comparan en minúscula CON tildes ("estás" sí, "estas"
     # es "these").
@@ -241,6 +244,9 @@ ES = {
         "quieras", "tengas", "seas", "estés", "hiciste", "perdiste", "ganaste",
         "cobraste", "pagaste", "sabías", "sabias", "habéis", "sois", "tenéis",
         "hacéis", "sabéis", "queréis", "podéis",
+        # voseo
+        "vos", "sos", "tenés", "sabés", "querés", "podés", "hacés", "vendés", "cobrás",
+        "necesitás", "estás", "pensás", "creés",
     },
     "me_re": re.compile(r"\b(yo|mi|mis|me|mí|conmigo|nosotros|nosotras|nuestro|nuestra"
                         r"|nuestros|nuestras|nos)\b"),
@@ -259,7 +265,7 @@ ES = {
                     r"|deja de deslizar|no sigas (?:bajando|deslizando)"
                     r"|espera,? no (?:hagas scroll|deslices|pases))"),
          "Abre con «deja de hacer scroll». Pedir atención demuestra que no te la has ganado."),
-        (re.compile(r"(?i)\b(?:en (?:este|el) (?:v[ií]deo|reel)(?: de hoy)?"
+        (re.compile(r"(?i)\b(?:en este (?:v[ií]deo|reel)|en el (?:v[ií]deo|reel) de hoy"
                     r"|hoy (?:te|os|les) voy a (?:enseñar|ensenar|mostrar|contar|explicar)"
                     r"|(?:te|os|les) voy a (?:enseñar|ensenar|mostrar|explicar) c[oó]mo)\b"),
          "Preámbulo de vídeo. Bórralo y abre con el resultado."),
@@ -407,7 +413,9 @@ def check_address(text, L, lang):
     if L["you_re"].search(low) or any(t in L["you_words"] for t in toks):
         return 100.0, L["msg"]["addr_you"]
     first = norm(toks[0], L) if toks else ""
-    if first in L["imperatives"]:
+    enc = L.get("enclitic_re")
+    stem = enc.match(first).group(1) if enc and enc.match(first) else None
+    if first in L["imperatives"] or (stem and stem in L["imperatives"]):
         return 90.0, L["msg"]["addr_imp"].format(w=toks[0])
     me_suffix = L.get("me_suffix_re")
     skip = L.get("me_suffix_skip", set())

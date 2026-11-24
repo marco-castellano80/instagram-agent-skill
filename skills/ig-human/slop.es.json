@@ -1,7 +1,64 @@
 {
   "version": "1.0-es",
   "lang": "es",
-  "note": "Léxico en español para humanize.py y detect.py con --lang es. Los caracteres invisibles y la tipografía se leen de slop.json (no dependen del idioma); de aquí salen las palabras, las frases y las estructuras. Las sustituciones mantienen género y número cuando el término los tiene, por eso varias entradas aparecen en cuatro formas. El último bloque de aperturas y cierres es específico de Instagram. Es una lista hecha a mano, no calibrada con un corpus: edítala, está pensada para ser tuya.",
+  "note": "Léxico en español para humanize.py y detect.py con --lang es. Los caracteres invisibles se leen de slop.json (no dependen del idioma); de aquí salen la tipografía (las mismas sustituciones, con nombres en español), las palabras, las frases y las estructuras. Las sustituciones mantienen género y número cuando el término los tiene, por eso varias entradas aparecen en cuatro formas. El último bloque de aperturas y cierres es específico de Instagram. Es una lista hecha a mano, no calibrada con un corpus: edítala, está pensada para ser tuya.",
+  "typographic": [
+    {
+      "from": "—",
+      "name": "RAYA",
+      "to": ", "
+    },
+    {
+      "from": "–",
+      "name": "SEMIRRAYA",
+      "to": "-"
+    },
+    {
+      "from": "‘",
+      "name": "COMILLA SIMPLE DE APERTURA",
+      "to": "'"
+    },
+    {
+      "from": "’",
+      "name": "COMILLA SIMPLE DE CIERRE",
+      "to": "'"
+    },
+    {
+      "from": "“",
+      "name": "COMILLA DOBLE DE APERTURA",
+      "to": "\""
+    },
+    {
+      "from": "”",
+      "name": "COMILLA DOBLE DE CIERRE",
+      "to": "\""
+    },
+    {
+      "from": "…",
+      "name": "PUNTOS SUSPENSIVOS",
+      "to": "..."
+    },
+    {
+      "from": "′",
+      "name": "PRIMA",
+      "to": "'"
+    },
+    {
+      "from": "·",
+      "name": "PUNTO MEDIO (solo entre espacios)",
+      "to": "-"
+    },
+    {
+      "from": "•",
+      "name": "VIÑETA",
+      "to": "-"
+    },
+    {
+      "from": "→",
+      "name": "FLECHA",
+      "to": "->"
+    }
+  ],
   "words": [
     {
       "find": "exploremos",
@@ -1492,36 +1549,36 @@
     },
     {
       "id": "el-resultado",
-      "regex": "(?im)^\\s*¿\\s*(?:el resultado|lo mejor|la clave|el truco|el problema|la trampa|lo peor|la sorpresa)\\s*\\?\\s*$",
+      "regex": "(?im)^\\s*¿?\\s*(?:el resultado|lo mejor|la clave|el truco|el problema|la trampa|lo peor|la sorpresa)\\s*\\?\\s*$",
       "name": "Pregunta retórica de una línea («¿El resultado?»)",
       "fix": "Responde en la misma frase en vez de escenificar una revelación."
     },
     {
       "id": "esto-aprendi",
-      "regex": "(?i)\\b(?:esto es lo que|lo que) (?:aprendí|aprendimos|he aprendido|hemos aprendido)\\b",
+      "regex": "(?i)\\besto es lo que (?:aprendí|aprendimos|he aprendido|hemos aprendido)\\b|\\blo que (?:aprendí|aprendimos|he aprendido|hemos aprendido)\\s*:",
       "name": "«Esto es lo que aprendí»",
       "fix": "Di la lección. Sáltate el anuncio."
     },
     {
-      "id": "triad",
+      "id": "triada",
       "regex": "(?i)\\b\\w+, \\w+ (?:y|e) \\w+\\.",
       "name": "Tríada de tres",
       "fix": "Dos elementos o cuatro. Tres es el ritmo por defecto del modelo."
     },
     {
-      "id": "rocket",
+      "id": "cohete",
       "regex": "[\\U0001F680\\U0001F525\\U0001F4A1\\u2728\\U0001F3AF]",
       "name": "Emoji de cohete / fuego / bombilla / chispas / diana",
       "fix": "Un emoji como mucho, y que no sea uno de estos cinco."
     },
     {
-      "id": "hashtag-wall",
+      "id": "muro-hashtags",
       "regex": "(?:#\\w+[ \\t]*){6,}",
       "name": "Muro de hashtags (6 o más)",
       "fix": "Instagram cuenta cinco como mucho. Tres a cinco temas concretos, o ninguno."
     },
     {
-      "id": "as-an-ai",
+      "id": "como-ia",
       "regex": "(?i)\\bcomo (?:una )?(?:ia|inteligencia artificial)\\b|\\bcomo (?:un )?modelo de lenguaje\\b",
       "name": "El modelo hablando de sí mismo",
       "fix": "Borra la frase."
@@ -1533,37 +1590,37 @@
       "fix": "Una publicación no necesita párrafo de conclusión."
     },
     {
-      "id": "engagement-bait",
+      "id": "cebo-interaccion",
       "regex": "(?i)¿\\s*(?:estás de acuerdo|qué opinas|qué piensas|me equivoco|quién más\\b[^?\\n]*|y tú\\b[^?\\n]*)\\?\\s*$",
       "name": "Pregunta de enganche por reflejo",
       "fix": "Haz una pregunta que solo podrías hacer tú, sobre lo concreto que acabas de contar."
     },
     {
-      "id": "stop-scroll",
+      "id": "deja-scroll",
       "regex": "(?im)^\\s*(?:deja de hacer scroll|para de hacer scroll|no hagas scroll|deja de deslizar|no sigas (?:bajando|deslizando)|espera,? no (?:hagas scroll|deslices|pases))\\b",
       "name": "Apertura «deja de hacer scroll»",
       "fix": "Lo que para el scroll tiene que ser la afirmación misma. Pedir atención es la señal de que no te la has ganado."
     },
     {
-      "id": "in-this-video",
-      "regex": "(?i)\\b(?:en (?:este|el) (?:v[ií]deo|reel|post)(?: de hoy)?|hoy (?:te|os|les) voy a (?:enseñar|mostrar|contar|explicar)|(?:te|os|les) voy a (?:enseñar|mostrar|explicar) cómo)\\b",
+      "id": "en-este-video",
+      "regex": "(?i)\\b(?:en este (?:v[ií]deo|reel|post)|en el (?:v[ií]deo|reel|post) de hoy|hoy (?:te|os|les) voy a (?:enseñar|mostrar|contar|explicar)|(?:te|os|les) voy a (?:enseñar|mostrar|explicar) cómo)\\b",
       "name": "Preámbulo de vídeo («en este vídeo te voy a enseñar»)",
       "fix": "Bórralo y empieza por el resultado. Los dos primeros segundos deciden todo el reel."
     },
     {
-      "id": "emoji-bullets",
+      "id": "vinetas-emoji",
       "regex": "(?m)^\\s*[\\U0001F300-\\U0001FAFF✅➡⬅✔✨]\\s*\\S",
       "name": "Lista con emojis como viñetas",
       "fix": "Usa un guion o un salto de línea. Las viñetas con emoji son lo que más huele a plantilla en un texto."
     },
     {
-      "id": "caps-shout",
-      "regex": "\\b[A-ZÁÉÍÓÚÑÜ]{3,}\\b(?:\\s+\\b[A-ZÁÉÍÓÚÑÜ]{3,}\\b){2,}",
+      "id": "mayusculas",
+      "regex": "\\b[A-ZÁÉÍÓÚÑÜ]{3,}\\b(?:[ \\t]+\\b[A-ZÁÉÍÓÚÑÜ]{3,}\\b){2,}",
       "name": "Tres o más palabras gritadas seguidas",
       "fix": "Las mayúsculas son un control de volumen, no un subrayador. Una palabra, como mucho."
     },
     {
-      "id": "follow-bait",
+      "id": "cebo-seguir",
       "regex": "(?i)\\b(?:sígueme para más|sigueme para mas|etiqueta a (?:alguien|un amigo|una amiga|ese amigo|esa amiga)|doble tap si|dale like si|comparte esto si|comenta (?:abajo )?si)\\b",
       "name": "Cebo de seguir o etiquetar por reflejo",
       "fix": "Pide la única acción que esta publicación se ha ganado. La petición genérica enseña a la audiencia a ignorar todas."
@@ -1575,14 +1632,14 @@
       "fix": "Responde la pregunta en la primera línea y quita la pregunta."
     },
     {
-      "id": "title-case",
-      "regex": "(?m)^(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñü]+\\s+){3,}[A-ZÁÉÍÓÚÑ][a-záéíóúñü]+\\b",
+      "id": "mayusculas-inglesas",
+      "regex": "(?m)^(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñü]+[ \\t]+){3,}[A-ZÁÉÍÓÚÑ][a-záéíóúñü]+\\b",
       "name": "Mayúsculas a la inglesa («Cómo Hacer Crecer Tu Marca»)",
       "fix": "En español solo va en mayúscula la primera palabra y los nombres propios."
     },
     {
       "id": "exclamaciones",
-      "regex": "(?:¡[^!\\n]{1,80}!\\s*){3,}",
+      "regex": "(?:¡?[^!\\n]{1,80}!+[ \\t]*){3,}",
       "name": "Tres exclamaciones seguidas",
       "fix": "Una exclamación pesa más cuando está sola. Deja una, como mucho."
     }

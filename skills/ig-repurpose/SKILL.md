@@ -81,7 +81,7 @@ ENCONTRADO  5 afirmaciones, 9 cifras, 3 relatos, 4 mecanismos, 2 errores, 7 fras
 SEMANA
 MAR  REEL      #2  La orden negativa      Deja de hacer llamadas de descubrimiento
                                           usa el clip del 14:20, se ríe al final
-MIÉ  CARRUSEL  texto tipo B               El formulario de 4 preguntas que sustituyó a la llamada
+MIÉ  CARRUSEL  texto función B            El formulario de 4 preguntas que sustituyó a la llamada
 VIE  REEL      #21 Empezar a media frase  "...y nueve días después pidió que le devolviéramos el dinero"
 DOM  REEL      #5  El tiempo comprimido   Seis horas a la semana recuperadas, un enlace menos
 

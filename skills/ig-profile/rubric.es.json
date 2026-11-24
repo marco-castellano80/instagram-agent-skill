@@ -2,7 +2,7 @@
   "version": "1.0-es",
   "lang": "es",
   "total": 100,
-  "note": "Doce puntos. Puntúa cada uno con honestidad: una nota generosa no ayuda a nadie. La mayoría de los perfiles en una primera pasada se quedan entre 30 y 40. La ponderación es deliberada: el campo de nombre, la primera línea de la bio y las tres fijadas valen más que la foto, porque son lo que procesa de verdad un desconocido que llega desde un reel antes de decidir si te sigue.",
+  "note": "Doce puntos. Puntúa cada uno con honestidad: una nota generosa no ayuda a nadie. La mayoría de los perfiles en una primera pasada se quedan entre 30 y 49 puntos. La ponderación es deliberada: el campo de nombre, la primera línea de la bio y las tres fijadas valen más que la foto, porque son lo que procesa de verdad un desconocido que llega desde un reel antes de decidir si te sigue.",
   "items": [
     {
       "id": "name_field",

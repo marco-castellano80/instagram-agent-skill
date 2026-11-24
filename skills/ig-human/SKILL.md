@@ -52,7 +52,7 @@ algo que suena a marca, o un creador que se traba con su propio guion.
 
 ## Lo que se arregla solo
 
-**1. Caracteres invisibles.** Espacios y uniones de ancho cero, word joiners,
+**1. Caracteres invisibles.** Espacios y uniones de ancho cero, unidores de palabra,
 guiones blandos, marcas de orden de bytes (BOM), caracteres de etiqueta
 Unicode, separadores invisibles, espacios duros y estrechos. Un teclado no los
 produce. Sobreviven al copiar y pegar, no se ven en ningún editor y son lo más

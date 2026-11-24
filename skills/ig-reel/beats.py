@@ -37,7 +37,8 @@ LANGS = ("es", "en")
 DEFAULT_LANG = os.environ.get("IG_LANG", "es") if os.environ.get("IG_LANG") in LANGS else "es"
 
 WORD_RE = re.compile(r"[\w$€£%'’-]+")
-SENT_RE = re.compile(r"[^.!?]+[.!?]*")
+# Un punto entre cifras ("18.000") no cierra la frase.
+SENT_RE = re.compile(r"(?:[^.!?]|(?<=\d)\.(?=\d))+[.!?]*")
 UPPER = "A-ZÁÉÍÓÚÑÜÀÈÌÒÙÂÊÎÔÛÇ"
 LOWER = "a-záéíóúñüàèìòùâêîôûç"
 
@@ -92,8 +93,8 @@ ES = {
     "fold": True,
     "num_sep": r"(?<=\d)[.,](?=\d)|(?<=\d)\s+(?=[€%])",
     "concrete_re": re.compile(
-        r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)(?<![¿¡])\b[" + UPPER + r"][" + LOWER + r"]{2,}\b",
-        re.MULTILINE),
+        r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)(?<![¿¡])(?<![.!?] )\b[" + UPPER + r"]["
+        + LOWER + r"]{2,}\b", re.MULTILINE),
     # Para detectar el bucle se comparan palabras con contenido, sin tildes.
     "stopwords": {
         "el", "la", "los", "las", "un", "una", "unos", "unas", "y", "e", "o", "u",
@@ -217,7 +218,7 @@ def analyse(raw, wpm=165, target=None, lang=DEFAULT_LANG):
             "flags": [],
         })
         clock += dur
-    total = clock
+    total = round(clock, 1)      # el mismo redondeo en la cabecera y en las notas
 
     # Las posiciones estructurales sobre las que se construye un Reel.
     for r in rows:

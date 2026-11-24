@@ -39,7 +39,8 @@ DEFAULT_LANG = os.environ.get("IG_LANG", "es") if os.environ.get("IG_LANG") in L
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEX = os.path.join(HERE, "slop.json")
 
-SENT_RE = re.compile(r"[^.!?\n]+[.!?]*")
+# Un punto entre cifras ("18.000") no cierra la frase.
+SENT_RE = re.compile(r"(?:[^.!?\n]|(?<=\d)\.(?=\d))+[.!?]*")
 WORD_RE = re.compile(r"[^\W\d_][\w'’]*")
 NUMBERS = re.compile(r"\b\d[\d,.]*%?\b|[$€£]\s?\d")
 UPPER = "A-ZÁÉÍÓÚÑÜÀÈÌÒÙÂÊÎÔÛÇ"
@@ -66,6 +67,7 @@ LANG = {
             "voice": "{c:.1f} contractions, {p:.1f} personal pronouns per 100 words, "
                      "{t} structural tell(s)",
             "title": "AI DETECTION PANEL",
+            "uniform_bullets": "uniform-bullets",
             "weakest": "Weakest signal: {c}. Fix that first.",
         },
     },
@@ -75,9 +77,10 @@ LANG = {
         # y estructuras.
         "contractions": None,
         "pronouns": re.compile(
-            r"\b(yo|me|mi|mis|mío|mía|conmigo|nosotros|nosotras|nos|nuestro|nuestra|nuestros"
-            r"|nuestras|tú|tu|tus|te|ti|contigo|usted|ustedes|os|vosotros|vosotras|vuestro"
-            r"|vuestra|vuestros|vuestras)\b", re.IGNORECASE),
+            r"\b(yo|me|mi|mí|mis|mío|mía|míos|mías|conmigo|nosotros|nosotras|nos|nuestro"
+            r"|nuestra|nuestros|nuestras|tú|tu|tus|te|ti|contigo|tuyo|tuya|tuyos|tuyas|vos"
+            r"|usted|ustedes|os|vosotros|vosotras|vuestro|vuestra|vuestros|vuestras)\b",
+            re.IGNORECASE),
         "proper": re.compile(r"(?<![.!?]\s)(?<![¿¡])(?<!^)\b[" + UPPER + r"][" + LOWER + r"]{2,}\b",
                              re.MULTILINE),
         "voice_weights": (0.0, 0.50, 0.50),
@@ -96,6 +99,7 @@ LANG = {
             "voice": "{p:.1f} pronombres personales por cada 100 palabras, "
                      "{t} señal(es) de estructura",
             "title": "PANEL DE DETECCIÓN",
+            "uniform_bullets": "viñetas-uniformes",
             "weakest": "Señal más débil: {c}. Arregla esa primero.",
         },
     },
@@ -166,10 +170,13 @@ def check_slop(text, lex, L):
     if not w:
         return 50.0, L["msg"]["empty"]
     hits, found = 0, []
-    for entry in lex["words"] + lex["phrases"]:
+    # Las más largas primero, y cada coincidencia se consume: "sígueme para más
+    # contenido" cuenta una vez, no tres.
+    work = text
+    for entry in sorted(lex["words"] + lex["phrases"], key=lambda e: len(e["find"]), reverse=True):
         pattern = re.compile(r"\b" + re.escape(entry["find"]).replace(r"\ ", r"\s+") + r"\b",
                              re.IGNORECASE)
-        n = len(pattern.findall(text))
+        work, n = pattern.subn("\x00", work)
         if n:
             hits += n
             found.append(entry["find"])
@@ -219,7 +226,7 @@ def check_voice(text, lex, L):
              + clamp(100 - tells * 22) * wt)
     if uniform:
         score -= 12
-        names.append("uniform-bullets")
+        names.append(L["msg"]["uniform_bullets"])
     detail = L["msg"]["voice"].format(c=contractions, p=person, t=tells)
     if names:
         detail += " [" + ", ".join(names[:4]) + "]"

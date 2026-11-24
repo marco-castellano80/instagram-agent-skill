@@ -77,7 +77,7 @@ MSG = {
         "working": "WHAT IS WORKING IN THIS BATCH",
         "top_formulas": "  top third by outlier:  ",
         "hook_scores": "  median hook score:     top {t:.0f}  vs bottom {b:.0f}",
-        "hook_len": "  median hook length:    top {t} words  vs bottom {b} words",
+        "hook_len": "  median hook length:    top {t:g} words  vs bottom {b:g} words",
         "unclassified": "  unclassified:          {u} of {n}. Read those by hand, they are where a "
                         "formula you do not have yet is hiding.",
         "caveat": "\n  A hand-collected batch is evidence, not proof. Twelve reels shows you "
@@ -101,7 +101,7 @@ MSG = {
         "working": "QUÉ ESTÁ FUNCIONANDO EN ESTE LOTE",
         "top_formulas": "  tercio superior:        ",
         "hook_scores": "  nota mediana gancho:    arriba {t:.0f}  frente a abajo {b:.0f}",
-        "hook_len": "  longitud mediana:       arriba {t} palabras  frente a abajo {b} palabras",
+        "hook_len": "  longitud mediana:       arriba {t:g} palabras  frente a abajo {b:g} palabras",
         "unclassified": "  sin clasificar:         {u} de {n}. Léelos a mano: ahí se esconde una "
                         "fórmula que todavía no tienes.",
         "caveat": "\n  Un lote recogido a mano es un indicio, no una prueba. Doce reels no te "
@@ -244,7 +244,7 @@ def render(a, out=sys.stdout):
         mult = f"{r['outlier']:.1f}x" if r["outlier"] else "   ?"
         score = f"{r['hook_score']:.0f}" if r["hook_score"] is not None else " -"
         fid = f"#{r['formula_id']:<2}" if r["formula_id"] else "-  "
-        print(f"  {mult:>7}  {m['hook']} {score:>3}  {fid} {r['formula'][:22]:<22} "
+        print(f"  {mult:>7}  {m['hook']} {score:>3}  {fid} {r['formula'][:24]:<24} "
               f"{r.get('account', '')[:16]:<16} {thousands(r['views'], lang):>9}", file=out)
         print(f"           \"{r['hook'][:96]}\"", file=out)
     print("-" * max(len(head), 78), file=out)

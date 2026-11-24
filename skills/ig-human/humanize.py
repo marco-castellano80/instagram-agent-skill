@@ -43,16 +43,24 @@ DEFAULT_LANG = os.environ.get("IG_LANG", "es") if os.environ.get("IG_LANG") in L
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEX = os.path.join(HERE, "slop.json")
 
-URL_RE = re.compile(r"https?://\S+|www\.\S+|\S+@\S+\.\S+")
-SENT_RE = re.compile(r"[^.!?\n]+[.!?]*")
+# URL, emails, hashtags y menciones no se reescriben: "#innovador" no debe
+# convertirse en "#nuevo".
+URL_RE = re.compile(r"https?://\S+|www\.\S+|\S+@\S+\.\S+|(?<!\w)[#@][\w.]*\w")
+# Un punto entre cifras ("18.000") no cierra la frase.
+SENT_RE = re.compile(r"(?:[^.!?\n]|(?<=\d)\.(?=\d))+[.!?]*")
 LETTER = r"[^\W\d_]"
 OPENERS = "¿¡\"'«(“"
 
-# Un conector detrás de una coma que antes era raya deja una frase empalmada
-# ("es importante, además, es una prueba"). Se convierte en punto.
+# Una raya seguida de un conector ("es importante — además, es una prueba")
+# daría una frase empalmada al convertirse en coma. Solo en ese caso se
+# convierte en punto. Incluye los conectores de relleno que el léxico cambia
+# después ("asimismo" -> "también").
 SPLICE = {
-    "en": r"also|so|still|basically|in the end",
-    "es": r"además|así que|aun así|básicamente|al final|también",
+    "en": r"also|so|still|basically|in the end|moreover|furthermore|additionally"
+          r"|nevertheless|consequently|thus|hence|ultimately|in essence|in conclusion",
+    "es": r"además|así que|aun así|básicamente|al final|también|asimismo|no obstante"
+          r"|en consecuencia|por consiguiente|en definitiva|en esencia|en última instancia"
+          r"|en conclusión",
 }
 
 MSG = {
@@ -68,6 +76,7 @@ MSG = {
         "deleted": "(deleted)",
         "space": "(space)",
         "other_cf": "other invisible format chars",
+        "actions": {"delete": "delete", "space": "space"},
         "uniform": "Uniform sentence length (variation {cv:.2f})",
         "uniform_fix": "Break one sentence in half. Let another run long. Machines write even.",
         "wrote": "wrote {p}",
@@ -85,6 +94,7 @@ MSG = {
         "deleted": "(borrado)",
         "space": "(espacio)",
         "other_cf": "otros caracteres de formato invisibles",
+        "actions": {"delete": "borrar", "space": "espacio"},
         "uniform": "Frases de longitud uniforme (variación {cv:.2f})",
         "uniform_fix": "Parte una frase por la mitad. Deja que otra se alargue. Las máquinas "
                        "escriben parejo.",
@@ -156,18 +166,24 @@ def pass_invisible(text, lex, m):
     return text, hits
 
 
-def pass_typographic(text, lex, m):
+def pass_typographic(text, lex, m, lang=DEFAULT_LANG):
     hits = []
     for entry in lex["typographic"]:
         ch = entry["from"]
-        n = text.count(ch)
+        n = len(re.findall(r"[ \t]+·[ \t]+", text)) if ch == "·" else text.count(ch)
         if not n:
             continue
         hits.append({"name": f"{ch} {entry['name']}", "count": n,
                      "to": entry["to"].strip() or m["space"]})
         if ch == "—":
+            text = re.sub(r"[ \t]*—[ \t]*(" + SPLICE[lang] + r")[ \t]*,[ \t]*",
+                          lambda mm: ". " + mm.group(1)[0].upper() + mm.group(1)[1:] + ", ",
+                          text, flags=re.IGNORECASE)
             # " palabra — palabra " y "palabra—palabra" quedan en coma + espacio.
             text = re.sub(r"\s*—\s*", ", ", text)
+        elif ch == "·":
+            # Solo como separador entre espacios: la "l·l" catalana se queda.
+            text = re.sub(r"[ \t]+·[ \t]+", " " + entry["to"] + " ", text)
         elif ch == "–":
             text = re.sub(r"\s*–\s*(?=\d)", "-", text)      # 5–10 -> 5-10
             text = re.sub(r"\s+–\s+", ", ", text)            # usada como raya
@@ -210,6 +226,7 @@ def pass_lexical(text, lex, lang, m):
     # Limpieza después de borrar. Borrar una cláusula entera deja puntuación
     # huérfana ("sistema. ." o una línea que ahora empieza por coma), y eso se
     # lee peor que el relleno.
+    text = text.replace("...", "\x00ELL\x00")          # protege los puntos suspensivos reales
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"(?m)^[ \t]*(?:[,.;:]+[ \t]*)+", "", text)
     text = re.sub(r"(?m)^[ \t](?=\S)", "", text)       # un espacio que dejó un borrado.
@@ -218,15 +235,13 @@ def pass_lexical(text, lex, lang, m):
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)      # una raya se volvió coma y luego
                                                       # se fue la cláusula de detrás
     text = re.sub(r"([¿¡])\s*[,;:]\s*", r"\1", text)   # "¿, qué" -> "¿qué"
-    text = text.replace("...", "\x00ELL\x00")          # protege los puntos suspensivos reales
+    # "Funciona., hay" -> "Funciona. hay" (respeta "etc.," y "p. ej.,")
+    text = re.sub(r"(?<!etc)(?<!ej)(?<!aprox)([.!?])[ \t]*[,;:]+[ \t]*", r"\1 ", text)
     text = re.sub(r"\.\s*\.+", ".", text)
     text = re.sub(r"([!?])\s*\.", r"\1", text)
     text = text.replace("\x00ELL\x00", "...")
     text = re.sub(r"(?m)^[ \t]+$", "", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    text = re.sub(r",\s*(" + SPLICE[lang] + r")\s*,\s*",
-                  lambda mm: ". " + mm.group(1)[0].upper() + mm.group(1)[1:] + ", ",
-                  text, flags=re.IGNORECASE)
     return text, hits
 
 
@@ -272,7 +287,7 @@ def humanize(text, lex, lang=DEFAULT_LANG):
     raw_for_case = text
     text, urls = protect_urls(text)
     text, inv = pass_invisible(text, lex, m)
-    text, typo = pass_typographic(text, lex, m)
+    text, typo = pass_typographic(text, lex, m, lang)
     text, lexi = pass_lexical(text, lex, lang, m)
     text = restore_capitals(raw_for_case, text)
     text = restore_urls(text, urls)
@@ -300,7 +315,8 @@ def render_report(report, lang=DEFAULT_LANG, out=sys.stderr):
     if report["invisible"]:
         head(m["invisible"])
         for h in report["invisible"]:
-            print(f"  {h['count']:>3}x  {h['name']}  -> {h['action']}", file=out)
+            print(f"  {h['count']:>3}x  {h['name']}  -> {m['actions'].get(h['action'], h['action'])}",
+                  file=out)
     if report["typographic"]:
         head(m["typo"])
         for h in report["typographic"]:

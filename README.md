@@ -207,11 +207,11 @@ tercio de arriba del de abajo. Acepta cabeceras en español (`cuenta`,
 ```
 SWIPE FILE  ·  4 reels  ·  4 cuentas  ·  referencia: mediana de la cuenta
 ==============================================================================
-    60.0x  gancho  76  #9  Róbalo                 @c                 180.000
+    60.0x  gancho  78  #9  Róbalo                   @c                 180.000
            "róbame este seguimiento de cuatro líneas que me costó dos años"
-    37.5x  gancho  87  #3  Nadie te lo dice       @a                 412.000
+    37.5x  gancho  87  #3  Nadie te lo dice         @a                 412.000
            "nadie te dice que tus primeros 30 reels tienen que fracasar"
-     1.3x  gancho  13  -   sin clasificar         @b               1.200.000
+     1.3x  gancho  13  -   sin clasificar           @b               1.200.000
            "en este vídeo te enseño mi rutina de mañana"
 ```
 

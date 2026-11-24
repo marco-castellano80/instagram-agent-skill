@@ -91,12 +91,12 @@ SEMANA DEL 15 DE SEPTIEMBRE
 LUN  solo interacción  (20 min, lista abajo)
 MAR  19:30  REEL      PRUEBA   #5  El tiempo comprimido   - propuesta de 5 h a 20 min
 MIÉ  solo historias + interacción
-JUE  19:00  CARRUSEL  ENSEÑAR  texto tipo B               - la cláusula en 4 diapositivas
+JUE  19:00  CARRUSEL  ENSEÑAR  texto función B            - la cláusula en 4 diapositivas
 VIE  19:30  REEL      OPINIÓN  #2  La orden negativa      - deja de hacer llamadas de descubrimiento
 SÁB  -
-DOM  18:00  REEL      RELATO   #21 Empezar a media frase  - el email del reembolso
+DOM  18:00  REEL      RELATO   #21 Empezar a media frase  - el correo del reembolso
 
-HISTORIAS  todos los días, de 3 a 5 pantallas, caja de preguntas el jueves.
+HISTORIAS  todos los días, de 3 a 5 pantallas, sticker de preguntas el jueves.
 
 INTERACCIÓN  (5 alcance / 3 pares / 2 compradores)
   ...
