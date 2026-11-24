@@ -5,7 +5,7 @@ humanize.py - quita de un borrador la huella de máquina.
 Tres pasadas, en este orden:
 
   1. INVISIBLES  borra o normaliza los caracteres que un teclado humano no
-                 produce: espacios y uniones de ancho cero, word joiners,
+                 produce: espacios y uniones de ancho cero, unidores de palabra,
                  guiones blandos, BOM, caracteres de etiqueta Unicode,
                  espacios duros y estrechos. Sobreviven al copiar y pegar.
   2. TIPOGRAFÍA  raya -> coma, semirraya -> guion, comillas curvas ->
@@ -127,8 +127,8 @@ LEX_MISSING = {
 
 
 def load_lexicon(path=LEX, lang=DEFAULT_LANG, overlay=None):
-    """slop.json da invisibles y tipografía; slop.<lang>.json (obligatorio si el
-    idioma no es inglés) sustituye palabras, frases y estructuras.
+    """slop.json da los caracteres invisibles; slop.<lang>.json (obligatorio si
+    el idioma no es inglés) sustituye tipografía, palabras, frases y estructuras.
 
     Si falta el léxico del idioma, sale con código 2 en vez de seguir en
     silencio con las palabras inglesas sobre un texto que no lo es."""
@@ -447,7 +447,7 @@ def main():
     ap.add_argument("--json", action="store_true", help="emite {text, report} como JSON")
     ap.add_argument("--lang", choices=LANGS, default=DEFAULT_LANG,
                     help=f"idioma del léxico y los mensajes (por defecto {DEFAULT_LANG})")
-    ap.add_argument("--lexicon", default=LEX, help="ruta a slop.json (invisibles y tipografía)")
+    ap.add_argument("--lexicon", default=LEX, help="ruta a slop.json (invisibles; tipografía y léxico en inglés)")
     ap.add_argument("--lexicon-lang", help="ruta al léxico del idioma (por defecto slop.<lang>.json)")
     args = ap.parse_args()
 

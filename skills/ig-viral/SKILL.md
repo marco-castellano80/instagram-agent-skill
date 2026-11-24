@@ -125,7 +125,9 @@ python3 swipe.py capturados.tsv --out ~/.claude/instagram/swipe.md
 ```
 
 La cabecera también vale en inglés, y las cifras se pueden escribir como
-`412.000`, `412K` o `412 mil`.
+`412.000`, `412K`, `412 mil`, `1,2 M` o `1 millón`. Si una celda no se
+entiende, el script avisa y la deja vacía en vez de inventarse una cifra (una
+fila sin vistas no entra en el ranking): corrígela y vuelve a pasarlo.
 
 Calcula el múltiplo sobre la mediana, pone nombre a la fórmula de cada gancho
 con las mismas 26 fórmulas de las que escribe `/ig-reel` (`hooks.es.json`; con
@@ -162,25 +164,28 @@ decir mañana.
 
 ## Salida
 
+La primera parte, hasta la nota sobre el tamaño del lote, es lo que imprime
+`swipe.py` (recortado donde pone «...»). Lo de debajo lo escribes tú.
+
 ```
 SWIPE FILE  ·  38 reels  ·  7 cuentas  ·  referencia: mediana de la cuenta
 ==============================================================================
-    38.5x  gancho  87  #3  Nadie te lo dice       @cuenta_a          412.000
+    38.5x  gancho  87  #3  Nadie te lo dice         @cuenta_a          412.000
            "nadie te dice que tus primeros 30 reels tienen que fracasar"
-    30.0x  gancho  53  #3  Nadie te lo dice       @cuenta_b           96.000
+    30.0x  gancho  53  #3  Nadie te lo dice         @cuenta_b           96.000
            "nadie te cuenta que el primer cliente casi nunca paga lo que vale"
     ...
 ------------------------------------------------------------------------------
 QUÉ ESTÁ FUNCIONANDO EN ESTE LOTE
   tercio superior:        Nadie te lo dice x5, La orden negativa x4, sin clasificar x2, Róbalo x1
-  nota mediana gancho:    arriba 51  frente a abajo 31
-  longitud mediana:       arriba 11.0 palabras  frente a abajo 18.0 palabras
-  sin clasificar:         11 de 38. Léelos a mano: ahí se esconde una fórmula que todavía no tienes.
+  nota mediana gancho:    arriba 52  frente a abajo 33
+  longitud mediana:       arriba 10.5 palabras  frente a abajo 15.5 palabras
+  sin clasificar:         15 de 38. Léelos a mano: ahí se esconde una fórmula que todavía no tienes.
 
   Un lote recogido a mano es un indicio, no una prueba. Doce reels no te enseñan nada;
   cuarenta en seis cuentas te enseñan algo. Recoge más antes de creértelo.
 
-SIN CLASIFICAR (11)
+SIN CLASIFICAR (15)
   Los dos del tercio superior tienen la misma forma y no está en hooks.es.json:
   un gancho que empieza leyendo en voz alta el comentario de otra persona.
   Merece la pena añadirla.

@@ -116,8 +116,8 @@ LEX_MISSING = {
 
 
 def load_lexicon(path=LEX, lang=DEFAULT_LANG, overlay=None):
-    """slop.json da invisibles y tipografía; slop.<lang>.json (obligatorio si el
-    idioma no es inglés) sustituye palabras, frases y estructuras.
+    """slop.json da los caracteres invisibles; slop.<lang>.json (obligatorio si
+    el idioma no es inglés) sustituye tipografía, palabras, frases y estructuras.
 
     Si falta el léxico del idioma, sale con código 2 (0 y 1 son APTO y no
     APTO) en vez de seguir en silencio con las palabras inglesas."""

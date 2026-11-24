@@ -91,9 +91,11 @@ RANKING DE GANCHOS
         más débil: TENSIÓN (70)
         descalifica: Abre con «deja de hacer scroll». Pedir atención demuestra que no te la has ganado.
         descalifica: Emoji en el gancho. El texto en pantalla a tamaño de gancho tiene sitio para palabras o para un emoji, no para las dos cosas.
-     5.4 DÉBIL   Hola a todos, hoy quiero hablaros de estrategia de contenido
+     9.6 DÉBIL   Hola a todos, hoy quiero hablaros de estrategia de contenido
         más débil: ARRANQUE (0)
         descalifica: Saludo. Nadie entra al feed para que le saluden.
+
+Graba el primero. Si el primero está por debajo de 50, ninguno de estos es el gancho.
 ```
 
 `beats.py` calcula cuánto se tarda en decir cada línea, las apila en códigos de
@@ -103,18 +105,18 @@ se vaya, una racha de líneas sin nada concreto y la falta de un bucle que
 vuelva a la primera línea.
 
 ```
-ESCALETA  ·  54 palabras  ·  ~19.6s a 165 ppm  ·  objetivo 30s
+ESCALETA  ·  50 palabras  ·  ~18.2s a 165 ppm  ·  objetivo 30s
 ========================================================================
   0:00.0   2.5s  GANCHO      Perdí 18.000 € por una cláusula que faltaba.
-  0:02.5   6.9s              Esta es la cláusula exacta que ahora pongo en cada contrato...
-                             ^ 6.9s en un solo bloque
-  0:09.4   3.6s  MITAD       Sección 4. Pago a la entrega, no a la aprobación.
-  0:13.1   3.6s              La aprobación es una sensación. La entrega es una fecha.
-  0:16.7   2.9s  CTA         Ese cambio de una palabra me vale 18.000 €.
+  0:02.5   5.5s              Esta es la cláusula exacta que ahora pongo en cada contrato que firmo, sin excepción.
+                             ^ 5.5s en un solo bloque
+  0:08.0   3.6s  MITAD       Sección 4. Pago a la entrega, no a la aprobación.
+  0:11.6   3.6s              La aprobación es una sensación. La entrega es una fecha.
+  0:15.3   2.9s  CTA         Ese cambio de una palabra me vale 18.000 €.
 ------------------------------------------------------------------------
-  - El/los bloque(s) 2 pasan de 4s. Parte la frase o cambia lo que hay en pantalla dentro de ella.
+  - El/los bloque(s) 2 pasan de 4s. Parte la frase o cambia lo que hay en pantalla dentro de ella. Un plano estático es donde la gente se va.
   - Bucle: el último bloque repite «18.000€» del gancho. Las segundas vistas son alcance gratis.
-  - 10.4s por debajo del objetivo. Añade 28 palabras o grábalo corto. Corto suele ser lo correcto.
+  - 11.8s por debajo del objetivo. Añade 32 palabras o grábalo corto. Corto suele ser lo correcto.
 ```
 
 El ritmo por defecto es 165 palabras por minuto y no está calibrado para
@@ -129,23 +131,50 @@ python3 caption.py texto.txt --keywords "diseño web,contratos freelance"
 Instagram muestra unos 125 caracteres del texto en el feed y esconde el resto
 detrás de un toque. Casi todos los textos que fallan, fallan ahí. Así que lo
 primero que imprime es esa ventana, en un recuadro, tal como la lee un
-desconocido haciendo scroll:
+desconocido haciendo scroll. Con este `texto.txt`:
 
 ```
+Perdí 18.000 € por una cláusula que faltaba en un contrato, y lo peor es que me lo había leído dos veces antes de firmarlo.
+
+El cliente aprobó el diseño web un lunes. Nueve días después pidió que le devolviera el dinero, y el contrato no decía nada sobre cuándo se daba el trabajo por entregado.
+
+Ahora todos mis contratos llevan una frase en la sección 4: el pago va ligado a la entrega, no a la aprobación.
+
+Comenta CONTRATO y te mando la cláusula completa.
+
+#freelance #contratos #diseñoweb
+```
+
+imprime esto:
+
+```
+REVISIÓN DEL TEXTO  ·  493 / 2200 caracteres  ·  3 hashtags  ·  1 petición(es)
+==============================================================================
+
   LO QUE ENSEÑA EL FEED
   +------------------------------------------------------+
   | Perdí 18.000 € por una cláusula que faltaba en un    |
   | contrato, y lo peor es que me lo había leído dos     |
   | veces antes de firmarlo.                             |
+  |                                                      |
+  |                                                      |
   +--------------------------------------------- ... más +
 
-  OK    LONGITUD          432 / 2200 caracteres
+  OK    LONGITUD          493 / 2200 caracteres
   OK    PRIMERA LÍNEA     123 caracteres, se ve entera
   OK    GANCHO CONCRETO   1 número(s) o nombre(s) en la ventana visible
   OK    HASHTAGS          3 hashtag(s): #freelance #contratos #diseñoweb
+  OK    SITIO DE TAGS     los hashtags están debajo del corte
+  OK    ENLACES           no hay enlaces muertos en el texto
   OK    UNA PETICIÓN      una llamada a la acción: comentar una palabra clave
+  OK    EMOJI             0 emoji, 0.0 por cada 100 caracteres
   AVISO BÚSQUEDA          1/2 presentes, 0 en la ventana visible. Faltan: contratos freelance
+------------------------------------------------------------------------------
+  VEREDICTO  REVISAR
 ```
+
+Las dos filas vacías del recuadro son los dos saltos de línea que siguen a la
+primera frase: la frase tiene 123 caracteres y el salto de párrafo entra en los 125.
 
 Aplica el tope actual de **cinco hashtags por publicación**, no treinta, según
 el repo original (Instagram lo redujo el 18 de diciembre de 2025). Reconoce las
@@ -163,16 +192,21 @@ python3 detect.py antes.txt despues.txt         # demuestra la diferencia
 
 **Lo que se quita solo:**
 
-- **Caracteres invisibles.** Espacios y uniones de ancho cero, word joiners,
-  guiones blandos, marcas de orden de bytes, caracteres de etiqueta Unicode,
-  espacios duros y estrechos. Tu teclado no los produce.
+- **Caracteres invisibles.** Espacios y uniones de ancho cero, unidores de
+  palabra, guiones blandos, marcas de orden de bytes, caracteres de etiqueta
+  Unicode, espacios duros y estrechos. Tu teclado no los produce. La lista sale
+  de `slop.json` y vale para los dos idiomas.
 - **Tipografía.** Raya a coma, semirraya a guion, comillas curvas a rectas,
-  puntos suspensivos a tres puntos. Las comillas angulares «» y los signos ¿ ¡
-  no se tocan: son español correcto.
-- **El léxico.** [`slop.es.json`](skills/ig-human/slop.es.json) reúne casi 300
-  palabras y frases de relleno en español con su sustitución normal
-  («sumérgete en», «potenciar», «crucial», «en el mundo actual», «juega un
-  papel fundamental», «al siguiente nivel», «sin lugar a dudas»), con las
+  puntos suspensivos a tres puntos. Delante de un conector («además», «así
+  que») la raya pasa a punto, y una raya al principio de línea (diálogo o
+  viñeta) se quita sin pegar la línea a la anterior. Las comillas angulares «»
+  y los signos ¿ ¡ no se tocan: son español correcto. Con `--lang es` esta
+  tabla se lee de `slop.es.json`, no de `slop.json`.
+- **El léxico.** [`slop.es.json`](skills/ig-human/slop.es.json) reúne 284
+  palabras y frases de relleno en español (75 palabras y 209 frases) con su
+  sustitución normal («sumérgete en», «potenciar», «crucial», «en el mundo
+  actual», «juega un papel fundamental», «al siguiente nivel», «sin lugar a
+  dudas»), con las
   formas de género y número para no romper la concordancia. El último bloque es
   de Instagram: «deja de hacer scroll», «en el vídeo de hoy», «sígueme para
   más», «etiqueta a alguien que necesite esto», «al algoritmo le encanta». Está
@@ -202,7 +236,19 @@ hace 400.000 encontró algo. `swipe.py` ordena por el múltiplo sobre la mediana
 de cada cuenta, pone nombre a la fórmula del gancho y enseña qué separa el
 tercio de arriba del de abajo. Acepta cabeceras en español (`cuenta`,
 `seguidores`, `mediana`, `vistas`, `gancho`) y cifras como `412.000`, `412K`,
-`412 mil` o `1,2 M`.
+`412 mil`, `1,2 M` o `1 millón`. Si una celda no se entiende, avisa y la deja
+vacía en lugar de inventarse una cifra (una fila sin vistas no entra). Con este
+`capturados.tsv`, separado por tabuladores:
+
+```
+cuenta	seguidores	mediana	vistas	gancho
+@a	48.000	11.000	412.000	nadie te dice que tus primeros 30 reels tienen que fracasar
+@b	2.000.000	900 mil	1,2 M	en este vídeo te enseño mi rutina de mañana
+@c	4.000	3.000	180K	róbame este seguimiento de cuatro líneas que me costó dos años
+@d	95.000	20.000	31.000	deja de cobrar por horas
+```
+
+imprime esto (recortado al final):
 
 ```
 SWIPE FILE  ·  4 reels  ·  4 cuentas  ·  referencia: mediana de la cuenta
@@ -211,8 +257,13 @@ SWIPE FILE  ·  4 reels  ·  4 cuentas  ·  referencia: mediana de la cuenta
            "róbame este seguimiento de cuatro líneas que me costó dos años"
     37.5x  gancho  87  #3  Nadie te lo dice         @a                 412.000
            "nadie te dice que tus primeros 30 reels tienen que fracasar"
+     1.6x  gancho  55  #2  La orden negativa        @d                  31.000
+           "deja de cobrar por horas"
      1.3x  gancho  13  -   sin clasificar           @b               1.200.000
            "en este vídeo te enseño mi rutina de mañana"
+------------------------------------------------------------------------------
+QUÉ ESTÁ FUNCIONANDO EN ESTE LOTE
+  ...
 ```
 
 ## Lo que está medido y lo que no
@@ -222,15 +273,20 @@ inglés** (los tres primeros segundos de los Shorts con mejor y peor rendimiento
 de cinco canales de YouTube). Resultados: detecta bien los ganchos malos (AUC
 0,83) y **no distingue ganadores** (AUC 0,56, donde 0,50 es tirar una moneda).
 Las fórmulas, reescritas sobre habla real, ponían nombre al 49% de los ganchos.
+Esas cifras son del puntuador original. El de este repositorio puntúa algo
+distinto también en inglés (ver «Cambios respecto al original») y no se ha
+vuelto a medir.
 
 **Nada de eso se ha repetido en español.** Esta adaptación:
 
 - tradujo los léxicos y escribió las regex de las 26 fórmulas para el español
   hablado;
 - se probó solo con ejemplos escritos a mano: 60 de 60 ganchos de prueba
-  clasificados en su fórmula. Son ejemplos hechos para las regex, así que ese
-  número no dice nada sobre ganchos reales. El original pasó del 8% al 49%
-  justo cuando dejó de probar con sus propias plantillas;
+  clasificados en su fórmula, y 68 de 68 comprobaciones de regresión (ganchos
+  que tienen que caer, o no caer, en una fórmula concreta, sacados de los
+  fallos encontrados al revisar). Son ejemplos escritos para las regex, así que
+  esos números no dicen nada sobre ganchos reales. El original pasó del 8% al
+  49% justo cuando dejó de probar con sus propias plantillas;
 - no se ha calibrado con un corpus español.
 
 Úsalo para descartar los ganchos flojos antes de grabar y fíate de tu gráfico
@@ -240,20 +296,76 @@ cualquier ejemplo de este README.
 
 ## Cambios respecto al original
 
+Con `--lang en` los scripts leen los datos en inglés del original
+(`hooks.json` y `slop.json`), pero el código es el mismo para los
+dos idiomas. Por eso los cambios de código se notan también en inglés. Los que
+solo afectan al español lo dicen.
+
+**Idioma**
+
 - Todos los scripts aceptan `--lang es|en` (por defecto `es`) o `IG_LANG`. Para
   añadir otro idioma basta con un bloque de datos por script y un
   `hooks.<idioma>.json` y `slop.<idioma>.json`.
-- Palabras con tildes y ñ, cifras en formato español (`18.000 €`), signos ¿ ¡ y
-  segunda persona sin pronombre («¿Sabías...?», «tienes», «perdiste»).
-- Arreglado un fallo del original en `hookscore.py`: las aperturas débiles se
-  comparaban como prefijo, así que «Your» contaba como «yo», «His» como «hi» y
-  «Someone» como «so». Ahora se comparan palabras completas.
-- `caption.py` avisa si la primera línea es un saludo (el original lo decía en
-  la documentación pero no lo comprobaba).
-- `swipe.py` entiende `412K`, `412 mil` o `1,2 M`. El original quitaba todo lo
-  que no fuera dígito, así que `1.2M` se leía como 12.
-- La señal de muro de hashtags es de 6 o más (coherente con el tope de 5) y ya
-  no menciona LinkedIn.
+- Solo en español: cifras en formato español
+  (`18.000 €`), signos ¿ ¡ y segunda persona sin pronombre («¿Sabías...?»,
+  «tienes», «perdiste»).
+- Solo en español: en `slop.es.json` la señal de muro de hashtags salta con 6 o
+  más (coherente con el tope de 5) y su consejo ya no menciona LinkedIn. Con
+  `--lang en` sigue la regla del original: 5 o más, con el consejo sobre
+  LinkedIn.
+
+**`hookscore.py`**
+
+- Las aperturas débiles se comparaban como prefijo, así que «Your» contaba como
+  «yo», «His» como «hi» y «Someone» como «so». Ahora se comparan palabras
+  completas, quitando antes el posesivo `'s`: «Today's» sigue contando como
+  «today».
+- Las palabras se cuentan con letras Unicode («naïve» es una palabra, no dos).
+  Los precios en € o £ y la palabra «euros» cuentan como dato concreto y como
+  precio en juego, igual que los dólares. Algunas notas en inglés cambian unos
+  puntos respecto al original.
+
+**`beats.py`**
+
+- Un punto decimal ya no corta la frase (`$3.5 million` es un solo bloque) y
+  los años ya no llevan separador de miles (`2024`, no `2,024`). El ritmo y el
+  objetivo se imprimen sin decimales sobrantes (`185 wpm` y `30s`, no
+  `185.0 wpm` y `30.0s`).
+
+**`caption.py`**
+
+- Avisa si la primera línea es un saludo (el original lo decía en la
+  documentación pero no lo comprobaba).
+- Cuenta como enlace también los dominios `.es`, `.mx`, `.ar`, `.cl`, `.pe`,
+  `.eu` y `.me`, lee los hashtags con tildes y compara los términos de búsqueda
+  sin distinguir tildes.
+
+**`swipe.py`**
+
+- Entiende `412K`, `412 mil`, `1,2 M`, `1 millón`, `1,5 mill.`, `1M+` o
+  `412k vistas`. El original quitaba todo lo que no fuera dígito, así que
+  `1.2M` se leía como 12 y `1 millón` como 1. Una celda que no se entiende da
+  un aviso y se deja vacía, en lugar de convertirse en una cifra inventada.
+
+**`humanize.py`**
+
+- Las líneas que empiezan por raya (diálogos, viñetas) o por semirraya y
+  espacio (viñetas) siguen siendo líneas: se quita el signo sin pegarlas a la anterior con una coma.
+- Una raya delante de un conector como «además» se convierte en punto y no en
+  coma, para no empalmar dos frases. Una semirraya entre espacios se trata
+  igual.
+- No toca las comas ni pone mayúscula detrás de una abreviatura («e.g.,»,
+  «p. ej.,», «a. m.», «EE. UU.»).
+- Repite la pasada del léxico hasta que no cambie nada (tres pasadas como
+  mucho), porque una sustitución puede formar otra entrada del léxico.
+- No reescribe hashtags ni menciones: «#innovador» se queda como está.
+- Con `--lang es`, si falta `slop.es.json`, sale con código 2 en lugar de
+  aplicar en silencio el léxico inglés. `detect.py` hace lo mismo.
+
+**`detect.py`**
+
+- Una entrada del léxico que contiene a otra cuenta una sola vez: «sígueme para
+  más contenido como este» es una coincidencia, no tres.
 
 ## La letra pequeña, que es la parte honesta
 
@@ -303,8 +415,9 @@ skills/ig-reel/hooks.json          las mismas 26 en inglés (--lang en)
 skills/ig-reel/hookscore.py        el panel de cinco propiedades del gancho
 skills/ig-reel/beats.py            del guion a la escaleta cronometrada
 skills/ig-caption/caption.py       la vista previa del corte y la revisión del texto
-skills/ig-human/slop.json          caracteres invisibles, tipografía y léxico en inglés
-skills/ig-human/slop.es.json       el léxico y las señales de estructura en español
+skills/ig-human/slop.json          caracteres invisibles (los dos idiomas); tipografía, léxico
+                                   y señales de estructura en inglés (--lang en)
+skills/ig-human/slop.es.json       tipografía, léxico y señales de estructura en español
 skills/ig-human/humanize.py        las tres pasadas de limpieza
 skills/ig-human/detect.py          el panel de cinco comprobaciones
 skills/ig-viral/swipe.py           ordenación por múltiplo y clasificación por fórmula

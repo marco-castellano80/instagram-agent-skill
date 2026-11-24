@@ -27,16 +27,24 @@ python3 detect.py borrador.txt limpio.txt       # demuestra la diferencia
 Las dos trabajan en español por defecto. Con `--lang en` usan el léxico y los
 mensajes en inglés.
 
-Las dos leen dos archivos de léxico:
+Con `--lang es`, las dos leen dos archivos de léxico (con `--lang en`, solo `slop.json`):
 
-- `slop.json`: 18 clases de caracteres invisibles y 11 sustituciones
-  tipográficas. Son las mismas en todos los idiomas.
-- `slop.es.json`: 293 palabras y frases de relleno en español (84 palabras y
+- `slop.json`: las 18 clases de caracteres invisibles, que valen para todos
+  los idiomas. Con `--lang en` da también la tipografía, el léxico y las
+  señales de estructura en inglés.
+- `slop.es.json`: con `--lang es`, todo lo demás. Las 11 sustituciones
+  tipográficas (las mismas que en inglés, con nombres en español; esta tabla
+  sustituye a la de `slop.json`, así que un cambio de tipografía para español
+  se hace aquí), 284 palabras y frases de relleno en español (75 palabras y
   209 frases), cada una con su sustitución en lenguaje normal, y 19 señales de
   estructura. Muchas entradas aparecen en cuatro formas, porque la sustitución
   tiene que concordar en género y número. El último tramo de aperturas y de
   cierres es específico de Instagram: el vocabulario que solo sale en textos y
   locuciones de reels.
+
+Si falta `slop.es.json`, las dos salen con código 2 y un mensaje de error en
+lugar de seguir con el léxico inglés. Con `--lexicon-lang` puedes indicar otra
+ruta.
 
 Es una lista hecha a mano, no calibrada con un corpus, y está pensada para
 editarla. Si el usuario tiene una palabra que usa siempre y el léxico se la
@@ -64,14 +72,20 @@ carácter de formato Unicode que no tenga en la lista.
 carácter de puntos suspensivos a tres puntos, viñeta a guion. Las comillas
 angulares «» y los signos de apertura ¿ ¡ no se tocan. La pasada de la raya es
 la que importa: convierte la raya en coma y después limpia la puntuación doble
-y los puntos huérfanos que deja.
+y los puntos huérfanos que deja. Delante de un conector («además», «así que»)
+la raya pasa a punto, para no empalmar dos frases, y una semirraya entre
+espacios se trata igual. Una raya al principio de línea (diálogo o viñeta) se
+quita sin pegar la línea a la anterior.
 
 **3. El léxico de relleno.** «sumérgete en», «apalancar», «robusto», «sin
 fisuras», «crucial», «un testimonio de», «en el acelerado mundo actual», y el
 bloque de Instagram: «deja de hacer scroll», «en el vídeo de hoy», «sígueme
 para más», «etiqueta a alguien que necesite esto», «al algoritmo le encanta»,
 «corre, no camines». Cada una se cambia por una palabra normal o se borra,
-respetando las mayúsculas y sin tocar las URL.
+respetando las mayúsculas y sin tocar las URL, los hashtags ni las menciones.
+La pasada se repite (tres veces como mucho) mientras cambie algo, porque una
+sustitución puede formar otra entrada del léxico. Las comas y las minúsculas
+que siguen a una abreviatura («p. ej.,», «a. m.», «EE. UU.») se respetan.
 
 ## Lo que NO se arregla solo
 

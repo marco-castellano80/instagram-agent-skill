@@ -79,7 +79,7 @@ OPCIONES DE COMENTARIO  (en el reel de @cuenta sobre precios)
 [6 · La experiencia propia]
 Pasamos de 1.500 € a 2.100 € al mes en marzo del año pasado y perdimos
 exactamente un cliente: el que se comía media bandeja de entrada. Tardamos
-ocho meses en perderle el miedo.
+ocho meses en perderle el miedo a subir precios.
 
 [3 · Discrepa con respeto]
 De acuerdo con lo del anclaje. Donde no lo veo es en hacerlo a mitad de

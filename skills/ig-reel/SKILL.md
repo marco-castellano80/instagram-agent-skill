@@ -155,7 +155,7 @@ GANCHOS  (con nota)
                                         en pantalla: 5 HORAS -> 20 MIN
   75  FUERTE  #1  Lo que me costó       "Cuatro horas a la semana durante dos años: eso me costó maquetar a mano."
                                         en pantalla: 2 AÑOS PERDIDOS
-  59  OK      #9  Róbalo                "Róbame esta plantilla de propuesta. A mí me costó dos años."
+  61  OK      #9  Róbalo                "Róbame esta plantilla de propuesta. A mí me costó dos años."
                                         en pantalla: RÓBAME ESTO
 
 Graba el #5: la proporción es creíble, se lee de un vistazo en pantalla

@@ -63,8 +63,9 @@ pregunta literal.
 - **Mantén el texto en la zona central.** En 1080x1920, nada por encima de
   y=250 ni por debajo de y=1600. Arriba está la fila del perfil y abajo, la
   barra de respuesta.
-- **Háblale a una persona.** «Tú», en singular. Las historias son lo más
-  parecido a un DM sin serlo.
+- **Háblale a una persona.** En singular, con el trato que diga voice.md (tú,
+  vos o usted; «tú» si no dice nada), nunca a un grupo. Las historias son lo
+  más parecido a un DM sin serlo.
 - **No compartas en historias tu propia publicación del feed sin comentario.**
   Es la pantalla más ignorada de la plataforma. Si señalas una publicación,
   cuenta qué ha pasado en los comentarios y por qué merece la pena volver.
