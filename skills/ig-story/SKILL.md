@@ -1,97 +1,106 @@
 ---
 name: ig-story
 description: >-
-  Write the day's Instagram Stories - the frame-by-frame sequence, which
-  stickers to use where, and the one that moves people into the DMs. Use when
-  the user says "stories", "what do I post on my story", "story sequence",
-  "poll idea", "I have nothing to story about", or wants to sell something
-  without making a post about it.
+  Escribe las historias de Instagram del día: la secuencia pantalla a
+  pantalla, qué stickers usar y dónde, y la que lleva a la gente a los DM.
+  Úsala cuando el usuario diga «historias», «qué subo a mis historias»,
+  «secuencia de historias», «idea para una encuesta», «no tengo nada que
+  contar en historias», o quiera vender algo sin hacer una publicación sobre
+  ello.
 ---
 
 # ig-story
 
-Stories are not a smaller feed. The feed is how strangers find you. Stories are
-how the people who already follow you decide whether you are a person worth
-buying from, and they are the only surface on Instagram where a tap turns into
-a conversation in one move.
+Escribe siempre en español, en la variante que diga `~/.claude/instagram/voice.md`
+(España, Latinoamérica o neutro). Si no lo dice, español neutro con «tú».
 
-Nobody outside your followers sees these, so the job is completely different:
-depth, not reach.
+Las historias no son un feed en pequeño. El feed es como te encuentran los
+desconocidos. Las historias son donde la gente que ya te sigue decide si eres
+alguien a quien merece la pena comprarle, y son la única superficie de
+Instagram donde un toque se convierte en una conversación de un solo paso.
 
-## The daily shape
+Fuera de tus seguidores nadie las ve, así que el trabajo es completamente
+distinto: profundidad, no alcance.
 
-Three to seven frames a day. Beyond about seven, the tap-forward rate climbs
-and the last frames play to nobody, which is exactly where people put the ask.
+## La forma del día
+
+De tres a siete pantallas al día. A partir de unas siete, sube la tasa de
+toques para pasar a la siguiente y las últimas pantallas no las ve nadie, que
+es justo donde la gente pone la petición.
 
 ```
-1       THE OPEN     something happening today, with a face or a hand in it.
-2-3     THE MIDDLE   the actual content: the process, the result, the mistake.
-4       THE ASK      one sticker. Poll, question box, quiz or link.
-5       THE CLOSE    the answer, the outcome, or tomorrow's setup.
+1       LA APERTURA    algo que pasa hoy, con una cara o una mano.
+2-3     EL CENTRO      el contenido de verdad: el proceso, el resultado o el error.
+4       LA PETICIÓN    un sticker. Encuesta, Preguntas, Cuestionario o Enlace.
+5       EL CIERRE      la respuesta, el desenlace o lo que preparas para mañana.
 ```
 
-Put the ask at frame 4, not frame 7. Completion drops with every tap and the
-ask should be seen by the people who are still there.
+Pon la petición en la pantalla 4, no en la 7. Cada toque hace caer la tasa de
+finalización, y la petición tiene que verla la gente que sigue ahí.
 
-## The stickers, and what each is actually for
+## Los stickers, y para qué sirve de verdad cada uno
 
-| sticker | job | use when |
+| sticker | función | úsalo cuando |
 | --- | --- | --- |
-| **Poll** | the cheapest tap there is | you want volume of response, not information |
-| **Question box** | harvesting the exact words people use | you need content ideas or objections, verbatim |
-| **Quiz** | teaching by letting them be wrong | there is a common misconception in the niche |
-| **Slider** | vibe check | nothing important. Fun, low value |
-| **Link** | the only clickable surface besides the bio | there is somewhere real to go |
-| **Countdown** | a deadline people can subscribe to | a launch, a live, a close date |
-| **Add yours** | reach beyond your followers, occasionally | the prompt is one anyone in the niche can answer |
+| **Encuesta** | el toque más barato que existe | quieres volumen de respuestas, no información |
+| **Preguntas** | recoger las palabras exactas que usa la gente | necesitas ideas de contenido u objeciones, al pie de la letra |
+| **Cuestionario** | enseñar dejando que se equivoquen | hay un error de concepto común en el nicho |
+| **Control deslizante (emoji)** | tomar la temperatura | nada importante. Divertido, poco valor |
+| **Enlace** | lo único que se puede tocar para salir, además de la bio | hay un sitio real al que ir |
+| **Cuenta atrás** | una fecha límite a la que la gente puede suscribirse | un lanzamiento, un directo, una fecha de cierre |
+| **Añade el tuyo** | alcance más allá de tus seguidores, de vez en cuando | la consigna la puede responder cualquiera del nicho |
 
-The question box is the most undervalued one in the list. Every answer is a
-caption, a Reel hook or a DM opener written in the audience's own words. Feed
-them to `/ig-reel` as formula #16.
+El sticker de Preguntas es el más infravalorado de la lista. Cada respuesta es
+un texto (caption), un gancho de reel o una primera frase de DM escrita con las
+palabras de la propia audiencia. Pásaselas a `/ig-reel` como la fórmula #16, La
+pregunta literal.
 
-## Rules
+## Reglas
 
-- **A face or a hand in the first frame.** Text on a coloured background gets
-  tapped through, and the first frame decides whether the rest get watched.
-- **One idea per frame.** Reading a paragraph on a story is not a thing anyone
-  does.
-- **Keep text inside the middle.** On 1080x1920, nothing above y=250 or below
-  y=1600. The profile row sits on top and the reply bar sits underneath.
-- **Talk to one person.** "You" singular. Stories are the closest thing to a
-  DM that is not one.
-- **Do not repost your own feed post to stories with no comment.** It is the
-  single most ignored frame on the platform. If you are pointing at a post, say
-  what happened in the comments and why it is worth going back for.
-- **Sell on stories, not in posts.** Three frames of context, one frame of
-  offer, one frame of proof. That sequence sells more than a feed post about
-  the same thing and costs you no reach.
+- **Una cara o una mano en la primera pantalla.** El texto sobre un fondo de
+  color se pasa de un toque, y la primera pantalla decide si se ven las demás.
+- **Una idea por pantalla.** Nadie lee un párrafo en una historia.
+- **Mantén el texto en la zona central.** En 1080x1920, nada por encima de
+  y=250 ni por debajo de y=1600. Arriba está la fila del perfil y abajo, la
+  barra de respuesta.
+- **Háblale a una persona.** En singular, con el trato que diga voice.md (tú,
+  vos o usted; «tú» si no dice nada), nunca a un grupo. Las historias son lo
+  más parecido a un DM sin serlo.
+- **No compartas en historias tu propia publicación del feed sin comentario.**
+  Es la pantalla más ignorada de la plataforma. Si señalas una publicación,
+  cuenta qué ha pasado en los comentarios y por qué merece la pena volver.
+- **Vende en historias, no en publicaciones.** Tres pantallas de contexto, una
+  de oferta y una de prueba. Esa secuencia vende más que una publicación del
+  feed sobre lo mismo y no te cuesta alcance.
 
-## The DM funnel, done honestly
+## El embudo a DM, hecho con honestidad
 
-The sequence that works: a story that names a problem, a question box or a poll
-that lets people say "that's me", and then a reply to each person who answered.
-The conversation starts because they spoke first.
+La secuencia que funciona: una historia que nombra un problema, un sticker de
+Preguntas o una Encuesta que deja a la gente decir «a mí me pasa», y después una
+respuesta a cada persona que contestó. La conversación empieza porque hablaron
+ellos primero.
 
-Automated keyword DM replies are a real, supported feature for professional
-accounts, through Instagram's own tools and approved partners. Bulk DMing
-people who did not interact is not, and it is what gets accounts restricted.
-The rule is simple: **they act first, then you reply.**
+Las respuestas automáticas por DM a palabras clave son una función real y
+admitida para cuentas profesionales, con las herramientas propias de Instagram
+y con socios aprobados. Mandar DM masivos a gente que no ha interactuado no lo
+es, y es lo que hace que restrinjan cuentas. La regla es simple: **primero
+actúan ellos, luego respondes tú.**
 
-## Output
+## Salida
 
-The frames in order, each with what is on screen, what is said, and which
-sticker, plus what to do with the answers:
+Las pantallas en orden, cada una con lo que se ve, lo que se dice y qué
+sticker lleva, más qué hacer con las respuestas:
 
 ```
-STORIES  ·  Tuesday  ·  5 frames
+HISTORIAS  ·  martes  ·  5 pantallas
 
-1  [selfie, walking]      "Third refund request this year. Same reason."
-2  [screen recording]     the clause, highlighted
-3  [talking]              "Approval is a feeling. Delivery is a date."
-4  [poll]                 "Have you been burned by a late approval?"  Yes / Not yet
-5  [text on photo]        "Reply and I will send you the clause."
+1  [selfi, caminando]        "Tercera solicitud de reembolso este año. Mismo motivo."
+2  [grabación de pantalla]   la cláusula, resaltada
+3  [hablando a cámara]       "La aprobación es una sensación. La entrega es una fecha."
+4  [Encuesta]                "¿Una aprobación tardía te ha costado dinero alguna vez?"  Sí / Todavía no
+5  [texto sobre foto]        "Respóndeme y te mando la cláusula."
 
-After: everyone who votes Yes gets a reply. That is the whole funnel.
+Después: todo el que vote Sí recibe una respuesta. Ese es todo el embudo.
 ```
 
-Nothing is posted. The user posts it.
+No se publica nada. Lo publica el usuario.

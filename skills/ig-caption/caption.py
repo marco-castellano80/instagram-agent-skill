@@ -1,82 +1,249 @@
 #!/usr/bin/env python3
 """
-caption.py - lint an Instagram caption and show exactly what the feed shows
-before the "... more".
+caption.py - revisa el texto de una publicación de Instagram y enseña
+exactamente lo que se ve en el feed antes del "... más".
 
-Instagram gives a caption about 125 characters in the feed and hides the rest
-behind a tap. Almost every caption that fails, fails there: the hook is in
-sentence three, or the first line is a greeting, or the whole thing opens on a
-hashtag. This prints the visible window as a box so you can read it the way a
-scrolling stranger does, then checks the eight things that are worth checking.
+Instagram muestra unos 125 caracteres del texto en el feed y esconde el resto
+detrás de un toque. Casi todos los textos que fallan, fallan ahí: el gancho
+está en la tercera frase, la primera línea es un saludo, o todo empieza con un
+hashtag. Este script imprime la ventana visible en un recuadro para que la
+leas como la lee un desconocido haciendo scroll, y luego comprueba las ocho
+cosas que merece la pena comprobar.
 
-The 125-character cut is an approximation. The real number moves with the
-device, the font size and where your line breaks fall, which is exactly why
-you want a margin rather than a caption engineered to end at 125. Change it
-with --truncate if you want to test a tighter one.
+El corte de 125 caracteres es aproximado. El número real cambia con el
+dispositivo, el tamaño de letra y dónde caen tus saltos de línea, que es
+justo por lo que quieres margen y no un texto diseñado para acabar en 125.
+Cámbialo con --truncate si quieres probar uno más estricto.
 
-Usage
-  python3 caption.py caption.txt
-  python3 caption.py caption.txt --keywords "proposal software,client contract"
+Uso
+  python3 caption.py texto.txt
+  python3 caption.py texto.txt --keywords "contratos freelance,precios de agencia"
   pbpaste | python3 caption.py -
-  python3 caption.py caption.txt --json
+  python3 caption.py texto.txt --json
+  python3 caption.py texto.txt --lang en
+
+Idioma: --lang es (por defecto) o en, o la variable de entorno IG_LANG.
 """
 
 import argparse
 import json
+import os
 import re
 import sys
 import textwrap
+import unicodedata
 
-LIMIT = 2200             # Instagram's hard caption limit.
-TRUNCATE = 125           # Roughly where the feed cuts to "... more".
-HASHTAG_LIMIT = 5        # Instagram's cap per post or reel since 18 Dec 2025,
-                         # down from 30. Announced by the @Creators account:
-                         # "using fewer (up to 5) more targeted hashtags,
-                         # rather than many generic ones, can improve both your
-                         # content's performance and people's experience".
+LANGS = ("es", "en")
+DEFAULT_LANG = os.environ.get("IG_LANG", "es") if os.environ.get("IG_LANG") in LANGS else "es"
 
-HASHTAG_RE = re.compile(r"(?:^|\s)(#[A-Za-z0-9_]+)")
-MENTION_RE = re.compile(r"(?:^|\s)(@[A-Za-z0-9_.]+)")
-LINK_RE = re.compile(r"https?://\S+|\bwww\.\S+|\b[a-z0-9-]+\.(?:com|co|io|net|org|ai|app)/\S*",
+LIMIT = 2200             # Límite duro de Instagram para el texto.
+TRUNCATE = 125           # Más o menos donde el feed corta a "... más".
+HASHTAG_LIMIT = 5        # Tope de Instagram por publicación o reel desde el
+                         # 18 dic 2025, antes 30 (anunciado por la cuenta
+                         # @Creators: "using fewer (up to 5) more targeted
+                         # hashtags, rather than many generic ones, can
+                         # improve both your content's performance and
+                         # people's experience"). Compruébalo: las cifras de
+                         # la plataforma cambian.
+
+HASHTAG_RE = re.compile(r"(?:^|\s)(#\w+)")
+MENTION_RE = re.compile(r"(?:^|\s)(@[\w.]+)")
+LINK_RE = re.compile(r"https?://\S+|\bwww\.\S+"
+                     r"|\b[a-z0-9-]+\.(?:com|co|io|net|org|ai|app|es|mx|ar|cl|pe|eu|me)/\S*",
                      re.IGNORECASE)
 EMOJI_RE = re.compile(r"[\U0001F300-\U0001FAFF☀-➿←-⇿️]")
-CONCRETE_RE = re.compile(r"\$\s?\d|\b\d[\d,.]*\b|(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE)
+UPPER = "A-ZÁÉÍÓÚÑÜÀÈÌÒÙÂÊÎÔÛÇ"
+LOWER = "a-záéíóúñüàèìòùâêîôûç"
 
-ASKS = [
-    (re.compile(r"(?i)\bcomment (?:the word |\")?[A-Z0-9]{2,}\b"), "comment a keyword"),
-    (re.compile(r"(?i)\b(?:dm|message) me\b"), "DM me"),
-    (re.compile(r"(?i)\bsave (?:this|it)\b"), "save this"),
-    (re.compile(r"(?i)\bshare (?:this|it)\b"), "share this"),
-    (re.compile(r"(?i)\bfollow (?:me|for)\b"), "follow"),
-    (re.compile(r"(?i)\blink in (?:my )?bio\b"), "link in bio"),
-    (re.compile(r"(?i)\b(?:swipe|tap) (?:through|left|right|for|to)\b"), "swipe or tap"),
-    (re.compile(r"(?i)\btell me\b|\bwhat would you\b|\bwhich one\b"), "answer a question"),
-]
 
-FILLER_TAGS = {"#viral", "#fyp", "#explore", "#explorepage", "#foryou", "#foryoupage",
-               "#trending", "#instagood", "#love", "#follow", "#like4like", "#reels",
-               "#reelsinstagram", "#viralreels", "#instadaily"}
+def fold(s):
+    """Minúsculas y sin tildes, para comparar términos de búsqueda."""
+    return "".join(c for c in unicodedata.normalize("NFD", s.lower())
+                   if unicodedata.category(c) != "Mn")
+
+
+FILLER_EN = {"#viral", "#fyp", "#explore", "#explorepage", "#foryou", "#foryoupage",
+             "#trending", "#instagood", "#love", "#follow", "#like4like", "#reels",
+             "#reelsinstagram", "#viralreels", "#instadaily"}
+FILLER_ES = FILLER_EN | {"#parati", "#paratii", "#paratipage", "#explorar", "#tendencia",
+                         "#tendencias", "#reel", "#instagram", "#amor", "#sigueme",
+                         "#seguidores", "#likes", "#megusta", "#reelsespanol",
+                         "#reelsespana", "#viralespana", "#virales"}
+
+EN = {
+    "concrete_re": re.compile(r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE),
+    "asks": [
+        (re.compile(r"(?i)\bcomment (?:the word |\")?[A-Z0-9]{2,}\b"), "comment a keyword"),
+        (re.compile(r"(?i)\b(?:dm|message) me\b"), "DM me"),
+        (re.compile(r"(?i)\bsave (?:this|it)\b"), "save this"),
+        (re.compile(r"(?i)\bshare (?:this|it)\b"), "share this"),
+        (re.compile(r"(?i)\bfollow (?:me|for)\b"), "follow"),
+        (re.compile(r"(?i)\blink in (?:my )?bio\b"), "link in bio"),
+        (re.compile(r"(?i)\b(?:swipe|tap) (?:through|left|right|for|to)\b"), "swipe or tap"),
+        (re.compile(r"(?i)\btell me\b|\bwhat would you\b|\bwhich one\b"), "answer a question"),
+    ],
+    "filler": FILLER_EN,
+    "greeting_re": re.compile(r"(?i)^\s*(?:hey|hi|hello|welcome|good (?:morning|evening))\b"),
+    "labels": {"LENGTH": "LENGTH", "FIRST LINE": "FIRST LINE", "HOOK IS CONCRETE": "HOOK IS CONCRETE",
+               "HASHTAGS": "HASHTAGS", "TAG PLACEMENT": "TAG PLACEMENT", "LINKS": "LINKS",
+               "ONE ASK": "ONE ASK", "EMOJI": "EMOJI", "SEARCH TERMS": "SEARCH TERMS"},
+    "status": {"PASS": "PASS", "WARN": "WARN", "FAIL": "FAIL"},
+    "verdicts": {"READY": "READY", "REVIEW": "REVIEW", "FIX": "FIX"},
+    "msg": {
+        "box_title": "WHAT THE FEED SHOWS",
+        "more": "... more",
+        "fits": "(whole caption fits)",
+        "length": "{c} / {l} characters",
+        "length_over": ", {n} over the limit",
+        "fl_blank": "the caption opens on a blank line",
+        "fl_tag": "opens on a hashtag or a mention, which is the one position worth a sentence",
+        "fl_greeting": "opens on a greeting. Nobody opened the app to be greeted: start on the hook",
+        "fl_long": "{n} characters, so it gets cut at {cut} mid-thought. Fine if the cut is a "
+                   "cliffhanger, bad if it is a subordinate clause",
+        "fl_ok": "{n} characters, lands whole",
+        "concrete": "{n} number(s) or name(s) in the visible window",
+        "concrete_none": " - nothing checkable before the tap",
+        "tags_over": "{n} tags, over Instagram's cap of {cap}. Tags past the fifth do not count "
+                     "and the block reads as old",
+        "tags_cap_filler": "{n} tags, at the cap, and {f} of them generic. Spend the five on topics",
+        "tags_filler": "{n} tags, {f} of them generic ({ex}). Those describe nothing",
+        "tags_ok": "{n} tag(s)",
+        "place_none": "no tags to place",
+        "place_window": "a hashtag is inside the visible window, spending feed space on a label",
+        "place_ok": "tags are below the fold",
+        "links": "{n} link(s) in the caption, and captions are not clickable. Move it to the bio "
+                 "or the DM",
+        "links_ok": "no dead links in the body",
+        "ask_one": "one call to action: {a}",
+        "ask_none": "no call to action. Decide what this post is for",
+        "ask_many": "{n} asks ({a}). Two asks is the same as none",
+        "emoji": "{n} emoji, {d:.1f} per 100 characters",
+        "emoji_heavy": " - reads as decoration",
+        "search": "{f}/{t} present",
+        "search_window": ", {n} in the visible window",
+        "search_missing": ". Missing: {m}",
+        "head": "CAPTION LINT  ·  {c} / {l} chars  ·  {h} hashtags  ·  {a} ask(s)",
+        "verdict": "VERDICT",
+    },
+}
+
+ES = {
+    # Una mayúscula a principio de línea, detrás de ¿ o ¡, detrás de un punto
+    # (inicio de frase) o detrás de unas comillas de apertura no es un nombre.
+    # El mismo patrón que hookscore.py y beats.py, para que coincidan.
+    "concrete_re": re.compile(
+        r"[$€£]\s?\d|\b\d[\d,.]*\b"
+        r"|(?<!^)(?<![¿¡])(?<![.!?] )(?<![.!?]\n)(?<![«“\"'‘(])(?<![«“\"'‘][¿¡])"
+        r"\b[" + UPPER + r"][" + LOWER + r"]{2,}\b",
+        re.MULTILINE),
+    "asks": [
+        # Solo el verbo ignora mayúsculas: la palabra clave tiene que ir en
+        # mayúsculas ("Comenta CONTRATO" sí; "Comenta abajo" o "Comenta «la guía
+        # del contrato»" no son una palabra clave).
+        (re.compile(r"\b(?i:comenta)\s+(?:(?i:la palabra|aqu[ií])\s+)?[\"“'«]?[" + UPPER
+                    + r"0-9]{2,}\b"
+                    r"|\b(?i:escribe)\s+[\"“'«]?[" + UPPER + r"0-9]{2,}[\"”'»]?\s+"
+                    r"(?i:en\s+(?:los\s+)?comentarios)\b"),
+         "comentar una palabra clave"),
+        # Tiene que ser una petición al autor. "...y te lo mando por privado" es
+        # cómo llega el regalo de la palabra clave, no una segunda petición.
+        (re.compile(r"(?i)\b(?:escr[ií]beme|m[aá]ndame|env[ií]ame|h[aá]blame)(?: (?:un|por))?"
+                    r" (?:dm|md|mensaje|privado)\b"),
+         "mensaje privado"),
+        (re.compile(r"(?i)\bgu[aá]rd(?:alo|atelo|adlo|ala|atela|aos|ate)\b"
+                    r"|\bguarda (?:este|esta|esto|el post|el reel|el carrusel|la publicaci[oó]n)\b"),
+         "guardar"),
+        (re.compile(r"(?i)\bcomp[aá]rt(?:elo|ela|idlo|ele)\b"
+                    r"|\bcomparte (?:este|esta|esto|el post|el reel|con)\b"
+                    r"|\b(?:m[aá]nda|env[ií]a|p[aá]sa)sel[oa]s? a\b"),
+         "compartir"),
+        (re.compile(r"(?i)\bs[ií]gueme\b|\bsigue a @|\bdale a seguir\b"), "seguir"),
+        (re.compile(r"(?i)\b(?:link|enlace)\s+(?:en|de)\s+(?:la |mi )?(?:bio|perfil)\b"),
+         "enlace en la bio"),
+        (re.compile(r"(?i)\bdesliza\b|\bswipe\b|\bpulsa (?:aqu[ií]|el enlace)\b"
+                    r"|\btoca (?:aqu[ií]|el enlace)\b"),
+         "deslizar o tocar"),
+        (re.compile(r"(?i)\bd[ií]me\b|\bcu[eé]ntame\b|\bqu[eé] har[ií]as\b"
+                    r"|\bcu[aá]l (?:prefieres|elegir[ií]as|eliges)\b|\bqu[eé] opinas\b"),
+         "responder una pregunta"),
+    ],
+    "filler": FILLER_ES,
+    # "Buenas" solo es saludo si va sola o con "tardes", "gente"...: "Buenas
+    # noticias" no lo es. "¿Qué tal si...?" es una propuesta, no un saludo.
+    "greeting_re": re.compile(r"(?i)^\s*[¡¿]?\s*(?:hola|buenos d[ií]as|hey|ey|bienvenid[oa]s?"
+                              r"|buenas(?=\s*(?:[,!.?]|$)|\s+(?:tardes|noches|d[ií]as"
+                              r"|a\s+tod[oa]s|gente|chic[oa]s)\b)"
+                              r"|qu[eé] tal(?!\s+si\b))\b"),
+    "labels": {"LENGTH": "LONGITUD", "FIRST LINE": "PRIMERA LÍNEA",
+               "HOOK IS CONCRETE": "GANCHO CONCRETO", "HASHTAGS": "HASHTAGS",
+               "TAG PLACEMENT": "SITIO DE TAGS", "LINKS": "ENLACES", "ONE ASK": "UNA PETICIÓN",
+               "EMOJI": "EMOJI", "SEARCH TERMS": "BÚSQUEDA"},
+    "status": {"PASS": "OK", "WARN": "AVISO", "FAIL": "FALLO"},
+    "verdicts": {"READY": "LISTO", "REVIEW": "REVISAR", "FIX": "CORREGIR"},
+    "msg": {
+        "box_title": "LO QUE ENSEÑA EL FEED",
+        "more": "... más",
+        "fits": "(cabe el texto entero)",
+        "length": "{c} / {l} caracteres",
+        "length_over": ", {n} por encima del límite",
+        "fl_blank": "el texto empieza con una línea en blanco",
+        "fl_tag": "empieza con un hashtag o una mención, en la única posición que merece una frase",
+        "fl_greeting": "empieza con un saludo. Nadie abre la app para que le saluden: empieza por el gancho",
+        "fl_long": "{n} caracteres, así que se corta en {cut} a media idea. Bien si el corte deja "
+                   "intriga, mal si corta una subordinada",
+        "fl_ok": "{n} caracteres, se ve entera",
+        "concrete": "{n} número(s) o nombre(s) en la ventana visible",
+        "concrete_none": " - nada comprobable antes del toque",
+        "tags_over": "{n} hashtags, por encima del tope de {cap} de Instagram. Los que pasan del "
+                     "quinto no cuentan y el bloque suena a 2019",
+        "tags_cap_filler": "{n} hashtags, en el tope, y {f} genéricos. Gasta los cinco en temas",
+        "tags_filler": "{n} hashtags, {f} genéricos ({ex}). Esos no describen nada",
+        "tags_ok": "{n} hashtag(s)",
+        "place_none": "no hay hashtags que colocar",
+        "place_window": "hay un hashtag dentro de la ventana visible, gastando espacio del feed "
+                        "en una etiqueta",
+        "place_ok": "los hashtags están debajo del corte",
+        "links": "{n} enlace(s) en el texto, y el texto no es clicable. Llévalo a la bio o al "
+                 "mensaje privado",
+        "links_ok": "no hay enlaces muertos en el texto",
+        "ask_one": "una llamada a la acción: {a}",
+        "ask_none": "ninguna llamada a la acción. Decide para qué es esta publicación",
+        "ask_many": "{n} peticiones ({a}). Dos peticiones es lo mismo que ninguna",
+        "emoji": "{n} emoji, {d:.1f} por cada 100 caracteres",
+        "emoji_heavy": " - parece decoración",
+        "search": "{f}/{t} presentes",
+        "search_window": ", {n} en la ventana visible",
+        "search_missing": ". Faltan: {m}",
+        "head": "REVISIÓN DEL TEXTO  ·  {c} / {l} caracteres  ·  {h} hashtags  ·  {a} petición(es)",
+        "verdict": "VEREDICTO",
+    },
+}
+
+DATA = {"en": EN, "es": ES}
 
 
 def visible_window(text, cut):
-    """What the feed shows. Instagram cuts mid-word, so this does too."""
+    """Lo que enseña el feed. Instagram corta a mitad de palabra, así que esto también."""
     flat = text.strip()
     return flat if len(flat) <= cut else flat[:cut]
 
 
-def render_box(window, truncated, out=sys.stdout, width=52):
-    print("\n  WHAT THE FEED SHOWS", file=out)
+def render_box(window, truncated, m, out=sys.stdout, width=52):
+    print("\n  " + m["box_title"], file=out)
     print("  +" + "-" * (width + 2) + "+", file=out)
     lines = []
     for raw in window.split("\n"):
         lines.extend(textwrap.wrap(raw, width) or [""])
     for line in lines[:8]:
         print(f"  | {line:<{width}} |", file=out)
-    tail = "... more" if truncated else "(whole caption fits)"
+    tail = m["more"] if truncated else m["fits"]
     print("  +" + "-" * (width + 2 - len(tail) - 2) + f" {tail} " + "+", file=out)
 
 
-def analyse(text, cut=TRUNCATE, keywords=None):
+def analyse(text, cut=TRUNCATE, keywords=None, lang=DEFAULT_LANG):
+    L = DATA[lang]
+    m = L["msg"]
+    concrete_re = L["concrete_re"]
     text = text.rstrip()
     stripped = text.strip()
     chars = len(stripped)
@@ -88,88 +255,86 @@ def analyse(text, cut=TRUNCATE, keywords=None):
     emoji = EMOJI_RE.findall(stripped)
     window = visible_window(stripped, cut)
     truncated = chars > cut
-    asks = [name for pattern, name in ASKS if pattern.search(stripped)]
-    filler = [t for t in tags if t.lower() in FILLER_TAGS]
+    asks = [name for pattern, name in L["asks"] if pattern.search(stripped)]
+    filler = [t for t in tags if fold(t) in L["filler"]]
     keywords = [k.strip() for k in (keywords or []) if k.strip()]
 
     checks = []
 
-    def add(name, status, detail):
-        checks.append({"check": name, "status": status, "detail": detail})
+    def add(cid, status, detail):
+        checks.append({"check": cid, "label": L["labels"][cid], "status": status,
+                       "detail": detail})
 
     add("LENGTH", "FAIL" if chars > LIMIT else "PASS",
-        f"{chars} / {LIMIT} characters" + (f", {chars - LIMIT} over the limit"
-                                           if chars > LIMIT else ""))
+        m["length"].format(c=chars, l=LIMIT)
+        + (m["length_over"].format(n=chars - LIMIT) if chars > LIMIT else ""))
 
     if not first_line:
-        add("FIRST LINE", "FAIL", "the caption opens on a blank line")
+        add("FIRST LINE", "FAIL", m["fl_blank"])
     elif first_line.startswith("#") or first_line.startswith("@"):
-        add("FIRST LINE", "FAIL",
-            "opens on a hashtag or a mention, which is the one position worth a sentence")
+        add("FIRST LINE", "FAIL", m["fl_tag"])
+    elif L["greeting_re"].search(first_line):
+        add("FIRST LINE", "WARN", m["fl_greeting"])
     elif len(first_line) > cut:
-        add("FIRST LINE", "WARN",
-            f"{len(first_line)} characters, so it gets cut at {cut} mid-thought. "
-            "Fine if the cut is a cliffhanger, bad if it is a subordinate clause")
+        add("FIRST LINE", "WARN", m["fl_long"].format(n=len(first_line), cut=cut))
     else:
-        add("FIRST LINE", "PASS", f"{len(first_line)} characters, lands whole")
+        add("FIRST LINE", "PASS", m["fl_ok"].format(n=len(first_line)))
 
-    add("HOOK IS CONCRETE", "PASS" if CONCRETE_RE.search(window) else "WARN",
-        f"{len(CONCRETE_RE.findall(window))} number(s) or name(s) in the visible window"
-        + ("" if CONCRETE_RE.search(window) else " - nothing checkable before the tap"))
+    found_concrete = concrete_re.findall(window)
+    add("HOOK IS CONCRETE", "PASS" if found_concrete else "WARN",
+        m["concrete"].format(n=len(found_concrete))
+        + ("" if found_concrete else m["concrete_none"]))
 
     if len(tags) > HASHTAG_LIMIT:
-        add("HASHTAGS", "FAIL", f"{len(tags)} tags, over Instagram's cap of {HASHTAG_LIMIT}. "
-                                "Tags past the fifth do not count and the block reads as old")
+        add("HASHTAGS", "FAIL", m["tags_over"].format(n=len(tags), cap=HASHTAG_LIMIT))
     elif len(tags) == HASHTAG_LIMIT and filler:
-        add("HASHTAGS", "WARN", f"{len(tags)} tags, at the cap, and "
-                                f"{len(filler)} of them generic. Spend the five on topics")
+        add("HASHTAGS", "WARN", m["tags_cap_filler"].format(n=len(tags), f=len(filler)))
     elif filler:
-        add("HASHTAGS", "WARN", f"{len(tags)} tags, {len(filler)} of them generic "
-                                f"({', '.join(filler[:3])}). Those describe nothing")
+        add("HASHTAGS", "WARN", m["tags_filler"].format(n=len(tags), f=len(filler),
+                                                        ex=", ".join(filler[:3])))
     else:
-        add("HASHTAGS", "PASS", f"{len(tags)} tag(s)" + (f": {' '.join(tags)}" if tags else ""))
+        add("HASHTAGS", "PASS", m["tags_ok"].format(n=len(tags))
+            + (f": {' '.join(tags)}" if tags else ""))
 
     if not tags:
-        add("TAG PLACEMENT", "PASS", "no tags to place")
+        add("TAG PLACEMENT", "PASS", m["place_none"])
     elif any(re.search(r"(?:^|\s)" + re.escape(t) + r"\b", window) for t in tags):
-        add("TAG PLACEMENT", "WARN", "a hashtag is inside the visible window, "
-                                     "spending feed space on a label")
+        add("TAG PLACEMENT", "WARN", m["place_window"])
     else:
-        add("TAG PLACEMENT", "PASS", "tags are below the fold")
+        add("TAG PLACEMENT", "PASS", m["place_ok"])
 
     add("LINKS", "WARN" if links else "PASS",
-        f"{len(links)} link(s) in the caption, and captions are not clickable. "
-        f"Move it to the bio or the DM" if links else "no dead links in the body")
+        m["links"].format(n=len(links)) if links else m["links_ok"])
 
     if len(asks) == 1:
-        add("ONE ASK", "PASS", f"one call to action: {asks[0]}")
+        add("ONE ASK", "PASS", m["ask_one"].format(a=asks[0]))
     elif not asks:
-        add("ONE ASK", "WARN", "no call to action. Decide what this post is for")
+        add("ONE ASK", "WARN", m["ask_none"])
     else:
-        add("ONE ASK", "WARN", f"{len(asks)} asks ({', '.join(asks)}). "
-                               "Two asks is the same as none")
+        add("ONE ASK", "WARN", m["ask_many"].format(n=len(asks), a=", ".join(asks)))
 
     density = len(emoji) * 100 / max(chars, 1)
     add("EMOJI", "WARN" if density > 4 else "PASS",
-        f"{len(emoji)} emoji, {density:.1f} per 100 characters"
-        + (" - reads as decoration" if density > 4 else ""))
+        m["emoji"].format(n=len(emoji), d=density) + (m["emoji_heavy"] if density > 4 else ""))
 
     if keywords:
-        low = stripped.lower()
-        found = [k for k in keywords if k.lower() in low]
-        missing = [k for k in keywords if k.lower() not in low]
-        in_window = [k for k in found if k.lower() in window.lower()]
+        # Sin distinguir mayúsculas ni tildes: "diseño web" encuentra "diseno web".
+        low, win = fold(stripped), fold(window)
+        found = [k for k in keywords if fold(k) in low]
+        missing = [k for k in keywords if fold(k) not in low]
+        in_window = [k for k in found if fold(k) in win]
         status = "PASS" if not missing else ("WARN" if found else "FAIL")
         add("SEARCH TERMS", status,
-            f"{len(found)}/{len(keywords)} present"
-            + (f", {len(in_window)} in the visible window" if found else "")
-            + (f". Missing: {', '.join(missing)}" if missing else ""))
+            m["search"].format(f=len(found), t=len(keywords))
+            + (m["search_window"].format(n=len(in_window)) if found else "")
+            + (m["search_missing"].format(m=", ".join(missing)) if missing else ""))
 
     fails = sum(1 for c in checks if c["status"] == "FAIL")
     warns = sum(1 for c in checks if c["status"] == "WARN")
     verdict = "FIX" if fails else ("REVIEW" if warns else "READY")
 
     return {
+        "lang": lang,
         "characters": chars, "limit": LIMIT, "truncate_at": cut,
         "visible": window, "truncated": truncated,
         "first_line_chars": len(first_line),
@@ -180,29 +345,34 @@ def analyse(text, cut=TRUNCATE, keywords=None):
 
 
 def render(a, out=sys.stdout):
-    head = (f"CAPTION LINT  ·  {a['characters']} / {a['limit']} chars  ·  "
-            f"{len(a['hashtags'])} hashtags  ·  {len(a['asks'])} ask(s)")
+    L = DATA[a["lang"]]
+    m = L["msg"]
+    head = m["head"].format(c=a["characters"], l=a["limit"], h=len(a["hashtags"]),
+                            a=len(a["asks"]))
     print("\n" + head, file=out)
     print("=" * max(len(head), 62), file=out)
-    render_box(a["visible"], a["truncated"], out=out)
+    render_box(a["visible"], a["truncated"], m, out=out)
     print("", file=out)
     for c in a["checks"]:
-        print(f"  {c['status']:<5} {c['check']:<17} {c['detail']}", file=out)
+        print(f"  {L['status'][c['status']]:<5} {c['label']:<17} {c['detail']}", file=out)
     print("-" * max(len(head), 62), file=out)
-    print(f"  VERDICT  {a['verdict']}\n", file=out)
+    print(f"  {m['verdict']}  {L['verdicts'][a['verdict']]}\n", file=out)
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Lint an Instagram caption.")
-    ap.add_argument("input", nargs="?", default="-", help="caption file, or - for stdin")
+    ap = argparse.ArgumentParser(description="Revisa el texto de una publicación de Instagram.")
+    ap.add_argument("input", nargs="?", default="-", help="archivo con el texto, o - para stdin")
     ap.add_argument("--truncate", type=int, default=TRUNCATE,
-                    help=f"characters shown before '... more' (default {TRUNCATE})")
-    ap.add_argument("--keywords", default="", help="comma-separated terms you want to be found for")
+                    help=f"caracteres visibles antes de '... más' (por defecto {TRUNCATE})")
+    ap.add_argument("--keywords", default="",
+                    help="términos separados por comas por los que quieres que te encuentren")
+    ap.add_argument("--lang", choices=LANGS, default=DEFAULT_LANG,
+                    help=f"idioma de las reglas y los mensajes (por defecto {DEFAULT_LANG})")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
     raw = sys.stdin.read() if args.input == "-" else open(args.input, encoding="utf-8").read()
-    a = analyse(raw, cut=args.truncate, keywords=args.keywords.split(","))
+    a = analyse(raw, cut=args.truncate, keywords=args.keywords.split(","), lang=args.lang)
     if args.json:
         print(json.dumps(a, indent=2, ensure_ascii=False))
     else:

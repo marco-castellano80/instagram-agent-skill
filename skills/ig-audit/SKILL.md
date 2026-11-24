@@ -1,104 +1,117 @@
 ---
 name: ig-audit
 description: >-
-  Post-mortem on what the user has already posted - which reels actually
-  worked, why, and what to stop making. Use when the user pastes their
-  Instagram insights or past posts and asks "what's working", "why did this
-  flop", "read my analytics", "audit my content", or wants to know what to do
-  more of.
+  Autopsia de lo que el usuario ya ha publicado: qué reels funcionaron de
+  verdad y por qué, y qué conviene dejar de hacer. Úsala cuando el usuario
+  pegue sus estadísticas de Instagram o publicaciones anteriores y pregunte
+  «qué está funcionando», «por qué ha fracasado esto», «léeme las
+  estadísticas», «audita mi contenido», o quiera saber de qué hacer más.
 ---
 
 # ig-audit
 
-The only honest source of what works for an account is that account. Every
-rule in every Instagram guide, including the ones in this pack, is a prior.
-The user's own last 30 posts are the evidence.
+Escribe siempre en español, en la variante que diga `~/.claude/instagram/voice.md`
+(España, Latinoamérica o neutro). Si no lo dice, español neutro con «tú».
 
-## Input
+La única fuente honesta de lo que funciona en una cuenta es esa cuenta. Todas
+las reglas de todas las guías de Instagram, incluidas las de este paquete, son
+una hipótesis de partida. Las 30 últimas publicaciones del usuario son la
+prueba.
 
-Ask for whichever the user has:
+## Entrada
 
-- Insights per post: views, reach, interactions, watch time, saves, shares,
-  follows, and the non-follower share of reach. Screenshots are fine.
-- Or the retention graph for their best and worst recent reels. This one
-  screenshot is worth more than the rest combined.
-- Or just the posts and their view counts, which is enough for a first pass.
+Pide lo que el usuario tenga:
 
-Also read `~/.claude/instagram/log.md` if it exists, since it records which
-hook formula each post used.
+- Estadísticas por publicación: visualizaciones, alcance, interacciones,
+  tiempo de visualización, guardados, envíos, seguidores ganados y la parte del
+  alcance que viene de no seguidores. Las capturas valen.
+- O el gráfico de retención de sus mejores y peores reels recientes. Esa sola
+  captura vale más que todo lo demás junto.
+- O solo las publicaciones con sus visualizaciones, que basta para una primera
+  pasada.
 
-## What to actually measure
+Lee también `~/.claude/instagram/log.md` si existe, porque ahí consta qué
+fórmula de gancho usó cada publicación.
 
-Raw views is the least useful number on the page, because it is mostly a
-function of how many people already follow the account. Compute these instead
-and show the working:
+## Qué medir de verdad
 
-| metric | how | what it tells you |
+Las visualizaciones a secas son la cifra menos útil de la pantalla, porque
+dependen sobre todo de cuánta gente sigue ya la cuenta. Calcula esto en su
+lugar y enseña las cuentas:
+
+| métrica | cómo | qué te dice |
 | --- | --- | --- |
-| **Outlier multiple** | views / the account's own median views | whether this was a real hit or a normal day |
-| **Non-follower reach** | % of reach from people who do not follow | whether it travelled at all |
-| **Hold at 3s** | viewers still there at 3s / viewers who started | whether the hook worked. This is the hook's grade. |
-| **Average watch time** | straight from insights | whether the middle worked |
-| **Sends per reach** | shares / reach | the strongest single signal you can earn. A send is a person putting their name on it. |
-| **Follows per reach** | follows / reach | whether the profile converted the attention |
+| **Múltiplo sobre la mediana** | visualizaciones / mediana de visualizaciones de la propia cuenta | si fue un éxito de verdad o un día normal |
+| **Alcance a no seguidores** | % del alcance que viene de gente que no sigue la cuenta | si salió de su círculo |
+| **Retención a los 3 s** | espectadores que siguen a los 3 s / espectadores que empezaron | si el gancho funcionó. Es la nota del gancho. |
+| **Tiempo medio de visualización** | directo de las estadísticas | si funcionó la parte del medio |
+| **Envíos por alcance** | envíos / alcance | la señal más fuerte que puedes ganarte. Un envío es alguien que pone su nombre detrás. |
+| **Seguidores por alcance** | seguidores ganados / alcance | si el perfil convirtió la atención |
 
-Rank by outlier multiple and sends per reach, not views. A reel with 4,000
-views and 90 sends beat the one with 60,000 views and 11.
+Ordena por múltiplo sobre la mediana y por envíos por alcance, no por
+visualizaciones. Un reel con 4.000 visualizaciones y 90 envíos le ganó al de
+60.000 visualizaciones y 11.
 
-## Then find the pattern
+## Luego busca el patrón
 
-With the top five and bottom five side by side, look for what separates them,
-and be willing to conclude something the user will not like:
+Con los cinco mejores y los cinco peores lado a lado, busca qué los separa, y
+atrévete a concluir algo que al usuario no le va a gustar:
 
-- **Hold at 3 seconds.** If the top and bottom differ here, it is the hook and
-  nothing else, and everything downstream is a distraction.
-- **Hook formula.** Which ids from `ig-reel/hooks.json` are in the top five?
-- **Format.** Reel, carousel, single image.
-- **Length.** Group into under 15s, 15 to 30s, 30 to 60s, over 60s.
-- **Theme.**
-- **Whether the user replied to comments in the first hour.**
-- **Day and time.** Check this **last** and only if the others show nothing.
-  It is almost never the cause and it is where people want it to be.
+- **Retención a los 3 segundos.** Si los mejores y los peores se diferencian
+  aquí, es el gancho y nada más, y todo lo que viene después distrae.
+- **Fórmula de gancho.** ¿Qué ids de `ig-reel/hooks.es.json` están entre los
+  cinco mejores?
+- **Formato.** Reel, carrusel o imagen única.
+- **Duración.** Agrupa en menos de 15 s, de 15 a 30 s, de 30 a 60 s y más de
+  60 s.
+- **Tema.**
+- **Si el usuario respondió a los comentarios en la primera hora.**
+- **Día y hora.** Mira esto **lo último**, y solo si lo demás no enseña nada.
+  Casi nunca es la causa, y es donde la gente quiere que esté.
 
-State the finding as a claim with the evidence attached, and say how confident
-it is. With 30 posts you can see a pattern. With 6 you cannot, and saying so is
-better than inventing one.
+Expresa el hallazgo como una afirmación con la prueba al lado, y di cuánta
+confianza merece. Con 30 publicaciones se ve un patrón. Con 6 no, y decirlo es
+mejor que inventarse uno.
 
-## The distinction that saves people months
+## La distinción que ahorra meses
 
-**A reel that gets views and no follows is not a failed reel, it is a profile
-problem.** A reel that gets no views is a hook problem. Separate the two before
-recommending anything. If non-follower reach is high and follows per reach is
-low, stop rewriting hooks and go to `/ig-profile`.
+**Un reel con visualizaciones y sin seguidores nuevos tiene un problema de
+perfil, no de reel.** Un reel sin visualizaciones tiene un problema de gancho.
+Separa las dos cosas antes de recomendar nada. Si el alcance a no seguidores es
+alto y los seguidores por alcance son bajos, deja de reescribir ganchos y pasa
+a `/ig-profile`.
 
-## Output
+## Salida
 
 ```
-AUDIT  ·  31 posts  ·  Jun 12 - Sep 5  ·  median views 4,100
+AUDITORÍA  ·  31 publicaciones  ·  12 jun - 5 sep  ·  mediana 4.100 vistas
 
-TOP 5 BY OUTLIER MULTIPLE
-  18.2x  #3  Nobody Tells You   74,600 views  62% non-follower  hold@3s 71%  128 sends
-   6.4x  #1  Cost Confession    26,300 views  48% non-follower  hold@3s 64%   71 sends
+LOS 5 MEJORES POR MÚLTIPLO SOBRE LA MEDIANA
+  18,2x  #3  Nadie te lo dice    74.600 vistas  62% no seguid.  ret. 3 s 71%  128 envíos
+   6,4x  #1  Lo que me costó     26.300 vistas  48% no seguid.  ret. 3 s 64%   71 envíos
   ...
 
-BOTTOM 5
-   0.3x  #11 Numbered            1,200 views  9% non-follower   hold@3s 31%    2 sends
+LOS 5 PEORES
+   0,3x  #11 Lista con favorita   1.200 vistas   9% no seguid.  ret. 3 s 31%    2 envíos
   ...
 
-WHAT THE DATA SAYS
-1. Hold at 3 seconds is the whole story. Top five average 66%, bottom five 33%.
-   Everything else you are worried about is downstream of the first two seconds.
-2. The posts where you were the one who looked bad: mean 8.1x vs 0.9x for
-   everything else. n=5. Strongest signal here and it is not close.
-3. Tool listicles get views and nothing else. High reach, no sends, no follows.
-   Three of your bottom five.
-4. Day of week shows nothing. Your Tuesday and Friday means are inside the
-   noise. Stop optimising it.
+LO QUE DICEN LOS DATOS
+1. La retención a los 3 segundos lo explica todo. Los cinco mejores tienen
+   una media del 66%, los cinco peores del 33%. Todo lo demás que te preocupa
+   depende de los dos primeros segundos.
+2. Las publicaciones en las que el que quedaba mal eras tú: media de 8,1x
+   frente a 0,9x en todo lo demás. n=5. Es la señal más fuerte de aquí, y con
+   mucha diferencia.
+3. Las listas de herramientas traen visualizaciones y nada más. Mucho alcance,
+   ningún envío, ningún seguidor. Son tres de tus cinco peores.
+4. El día de la semana no enseña nada. Tus medias del martes y del viernes
+   están dentro del ruido. Deja de optimizarlo.
 
-STOP: listicles.
-DO MORE: the ones with a cost you paid and a number attached.
+DEJA DE HACER: listas de herramientas.
+HAZ MÁS: las que llevan un coste que pagaste y una cifra.
 ```
 
-Then hand the conclusions to `/ig-plan` so next week is built on the user's own
-evidence rather than on defaults, and to `/ig-viral` so the swipe file gets
-filtered to the formulas that work for this account specifically.
+Después pasa las conclusiones a `/ig-plan`, para que la semana que viene se
+construya con las pruebas del propio usuario y no con valores por defecto, y a
+`/ig-viral`, para que el swipe file se filtre por las fórmulas que funcionan en
+esta cuenta en concreto.

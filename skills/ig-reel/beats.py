@@ -1,55 +1,158 @@
 #!/usr/bin/env python3
 """
-beats.py - turn a Reel script into a timed beat sheet before you record it.
+beats.py - convierte un guion de Reel en una escaleta cronometrada antes de
+grabarlo.
 
-Estimates how long each line takes to say, stacks them into timecodes, and
-flags the four things that kill a Reel in the edit: a hook that runs past the
-three-second mark, a beat long enough for the viewer to leave, a run of lines
-with nothing concrete in them, and a total length that does not match what you
-said you were making.
+Calcula cuánto se tarda en decir cada línea, las apila en códigos de tiempo y
+marca las cuatro cosas que matan un Reel en la edición: un gancho que pasa de
+los tres segundos, un bloque tan largo que el espectador se va, una racha de
+líneas sin nada concreto, y una duración total que no cuadra con lo que dijiste
+que ibas a hacer.
 
-The timings are an estimate from word count at a words-per-minute rate. They
-are close enough to plan an edit and not a substitute for recording it. Set
-your own rate with --wpm once you have timed yourself reading a script out
-loud: most people land between 150 and 200, and the default here is 165.
+Los tiempos son una estimación a partir del número de palabras y un ritmo en
+palabras por minuto. Sirven para planificar la edición, no para sustituir la
+grabación. Fija tu propio ritmo con --wpm cuando te hayas cronometrado leyendo
+un guion en voz alta: casi todo el mundo cae entre 150 y 200, y el valor por
+defecto es 165 (no está calibrado específicamente para español).
 
-Usage
-  python3 beats.py script.txt
-  python3 beats.py script.txt --target 30
-  python3 beats.py script.txt --wpm 185 --target 45
+Uso
+  python3 beats.py guion.txt
+  python3 beats.py guion.txt --target 30
+  python3 beats.py guion.txt --wpm 185 --target 45
   pbpaste | python3 beats.py -
-  python3 beats.py script.txt --json
+  python3 beats.py guion.txt --json
+  python3 beats.py guion.txt --lang en
+
+Idioma: --lang es (por defecto) o en, o la variable de entorno IG_LANG.
 """
 
 import argparse
 import json
+import os
 import re
 import sys
+import unicodedata
 
-WORD_RE = re.compile(r"[A-Za-z0-9$%'’-]+")
-SENT_RE = re.compile(r"[^.!?]+[.!?]*")
-CONCRETE_RE = re.compile(r"\$\s?\d|\b\d[\d,.]*\b|(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE)
-STOPWORDS = {
-    "the", "a", "an", "and", "or", "but", "if", "of", "to", "in", "on", "for",
-    "with", "that", "this", "it", "is", "are", "was", "were", "be", "been",
-    "you", "your", "i", "my", "me", "we", "our", "they", "them", "he", "she",
-    "so", "just", "not", "no", "do", "did", "does", "have", "has", "had",
-    "will", "can", "at", "as", "by", "from", "out", "up", "off", "one", "all",
+LANGS = ("es", "en")
+DEFAULT_LANG = os.environ.get("IG_LANG", "es") if os.environ.get("IG_LANG") in LANGS else "es"
+
+WORD_RE = re.compile(r"[\w$€£%'’-]+")
+# Un punto entre cifras ("18.000") no cierra la frase.
+SENT_RE = re.compile(r"(?:[^.!?]|(?<=\d)\.(?=\d))+[.!?]*")
+UPPER = "A-ZÁÉÍÓÚÑÜÀÈÌÒÙÂÊÎÔÛÇ"
+LOWER = "a-záéíóúñüàèìòùâêîôûç"
+
+HOOK_WINDOW = 3.0        # segundos. Pasado esto, el pulgar ya ha decidido.
+MAX_BEAT = 4.0           # segundos con una sola idea sin cambio en pantalla.
+ABSTRACT_RUN = 3         # bloques seguidos sin nada comprobable.
+
+
+def strip_accents(s):
+    return "".join(c for c in unicodedata.normalize("NFD", s)
+                   if unicodedata.category(c) != "Mn")
+
+
+EN = {
+    "fold": False,
+    "num_sep": r"(?<=\d),(?=\d)",
+    "concrete_re": re.compile(r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE),
+    "stopwords": {
+        "the", "a", "an", "and", "or", "but", "if", "of", "to", "in", "on", "for",
+        "with", "that", "this", "it", "is", "are", "was", "were", "be", "been",
+        "you", "your", "i", "my", "me", "we", "our", "they", "them", "he", "she",
+        "so", "just", "not", "no", "do", "did", "does", "have", "has", "had",
+        "will", "can", "at", "as", "by", "from", "out", "up", "off", "one", "all",
+    },
+    "labels": {"HOOK": "HOOK", "MID": "MID", "CTA": "CTA", "HOOK/CTA": "HOOK/CTA"},
+    "msg": {
+        "head": "BEAT SHEET  ·  {words} words  ·  ~{secs:.1f}s at {wpm:g} wpm",
+        "target": "  ·  target {t:g}s",
+        "flag_hook": "hook runs {d:.1f}s, past the {w:.0f}s mark",
+        "note_hook": "Beat 1 takes {d:.1f}s to say. Cut it to {n} words or fewer, or the hook "
+                     "lands after the decision has been made.",
+        "note_hook_abstract": "Beat 1 has no number and no name in it. Hooks without something "
+                              "checkable are the ones that get scrolled.",
+        "flag_long": "{d:.1f}s on one beat",
+        "note_long": "Beat(s) {beats} run past {m:.0f}s. Either split the line or change what is "
+                     "on screen inside it. A static frame is where people leave.",
+        "note_abstract": "Beats {a}-{b} have nothing concrete in them. Put a number, a name or a "
+                         "price in one of them.",
+        "note_loop": "Loops: the last beat repeats \"{w}\" from the hook. Second watches are free "
+                     "reach.",
+        "note_noloop": "No loop. The last beat shares no word with the hook, so the video ends "
+                       "flat. Echoing one word from beat 1 is the cheapest replay you get.",
+        "note_on_target": "Length is on target ({total:.1f}s against {t:g}s).",
+        "note_over": "{d:.1f}s over target. Cut about {n} words.",
+        "note_under": "{d:.1f}s under target. Either add {n} words or shoot it short. Short is "
+                      "usually right.",
+        "empty": "empty script",
+    },
 }
 
-HOOK_WINDOW = 3.0        # seconds. Past this, the thumb has already decided.
-MAX_BEAT = 4.0           # seconds on one idea with no change on screen.
-ABSTRACT_RUN = 3         # beats in a row with nothing checkable in them.
+ES = {
+    "fold": True,
+    "num_sep": r"(?<=\d)[.,](?=\d)|(?<=\d)\s+(?=[€%])",
+    "concrete_re": re.compile(
+        r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)(?<![¿¡])(?<![.!?] )\b[" + UPPER + r"]["
+        + LOWER + r"]{2,}\b", re.MULTILINE),
+    # Para detectar el bucle se comparan palabras con contenido, sin tildes.
+    "stopwords": {
+        "el", "la", "los", "las", "un", "una", "unos", "unas", "y", "e", "o", "u",
+        "pero", "si", "de", "del", "a", "al", "en", "por", "para", "con", "sin", "que",
+        "es", "son", "era", "fue", "ser", "estar", "esta", "estan", "este", "esto",
+        "estos", "estas", "ese", "esa", "eso", "lo", "le", "les", "se", "me", "te",
+        "nos", "os", "mi", "mis", "tu", "tus", "su", "sus", "yo", "el", "ella", "ellos",
+        "ellas", "nosotros", "vosotros", "ustedes", "usted", "no", "ni", "ya", "mas",
+        "muy", "como", "cuando", "donde", "hay", "he", "ha", "has", "han", "hemos",
+        "tengo", "tiene", "uno", "todo", "todos", "asi", "solo", "tambien", "porque",
+        "entonces", "pues", "cada",
+    },
+    "labels": {"HOOK": "GANCHO", "MID": "MITAD", "CTA": "CTA", "HOOK/CTA": "GANCHO/CTA"},
+    "msg": {
+        "head": "ESCALETA  ·  {words} palabras  ·  ~{secs:.1f}s a {wpm:g} ppm",
+        "target": "  ·  objetivo {t:g}s",
+        "flag_hook": "el gancho dura {d:.1f}s, pasa de los {w:.0f}s",
+        "note_hook": "El bloque 1 tarda {d:.1f}s en decirse. Déjalo en {n} palabras o menos, o el "
+                     "gancho llega cuando la decisión ya está tomada.",
+        "note_hook_abstract": "El bloque 1 no tiene ni un número ni un nombre. Los ganchos sin "
+                              "nada comprobable son los que se pasan de largo.",
+        "flag_long": "{d:.1f}s en un solo bloque",
+        "note_long": "El/los bloque(s) {beats} pasan de {m:.0f}s. Parte la frase o cambia lo que "
+                     "hay en pantalla dentro de ella. Un plano estático es donde la gente se va.",
+        "note_abstract": "Los bloques {a}-{b} no tienen nada concreto. Mete un número, un nombre o "
+                         "un precio en alguno.",
+        "note_loop": "Bucle: el último bloque repite «{w}» del gancho. Las segundas vistas son "
+                     "alcance gratis.",
+        "note_noloop": "Sin bucle. El último bloque no comparte ninguna palabra con el gancho, así "
+                       "que el vídeo acaba plano. Repetir una palabra del bloque 1 es la "
+                       "repetición más barata que vas a conseguir.",
+        "note_on_target": "La duración cuadra con el objetivo ({total:.1f}s frente a {t:g}s).",
+        "note_over": "{d:.1f}s por encima del objetivo. Recorta unas {n} palabras.",
+        "note_under": "{d:.1f}s por debajo del objetivo. Añade {n} palabras o grábalo corto. Corto "
+                      "suele ser lo correcto.",
+        "empty": "guion vacío",
+    },
+}
+
+DATA = {"en": EN, "es": ES}
 
 
-def words(text):
-    # "$18,000" is one word when it is spoken, so it is one word here too.
-    return WORD_RE.findall(re.sub(r"(?<=\d),(?=\d)", "", text))
+def words(text, lang=DEFAULT_LANG):
+    # "18.000" es una palabra cuando se dice, así que aquí también.
+    return WORD_RE.findall(re.sub(DATA[lang]["num_sep"], "", text))
 
 
-def pretty(token):
-    """Put the thousands separator back for display."""
-    return re.sub(r"(\d)(?=(\d{3})+$)", r"\1,", token)
+def pretty(token, lang):
+    """Vuelve a poner el separador de miles para mostrarlo."""
+    sep = "." if lang == "es" else ","
+
+    def fmt(m):
+        digits = m.group(0)
+        if re.fullmatch(r"(?:19|20)\d\d", digits):      # un año, no una cifra
+            return digits
+        return format(int(digits), ",").replace(",", sep)
+
+    return re.sub(r"\d{4,}", fmt, token)
 
 
 def tc(seconds):
@@ -57,22 +160,22 @@ def tc(seconds):
     return f"{int(m)}:{s:04.1f}"
 
 
-def split_beats(raw, wps):
-    """One line is one beat, unless a line is too long to be one."""
+def split_beats(raw, wps, lang):
+    """Una línea es un bloque, salvo que sea demasiado larga para serlo."""
     beats = []
     for line in [l.strip() for l in raw.splitlines()]:
         if not line:
             continue
-        if len(words(line)) / wps <= MAX_BEAT * 1.5:
+        if len(words(line, lang)) / wps <= MAX_BEAT * 1.5:
             beats.append(line)
             continue
-        # Long paragraph: break it at sentence ends so the timings mean
-        # something, and let the report say it was split.
+        # Párrafo largo: se corta en los finales de frase para que los tiempos
+        # signifiquen algo.
         parts = [p.strip() for p in SENT_RE.findall(line) if p.strip()]
         buf = ""
         for part in parts:
             candidate = (buf + " " + part).strip()
-            if buf and len(words(candidate)) / wps > MAX_BEAT:
+            if buf and len(words(candidate, lang)) / wps > MAX_BEAT:
                 beats.append(buf)
                 buf = part
             else:
@@ -82,15 +185,27 @@ def split_beats(raw, wps):
     return beats
 
 
-def analyse(raw, wpm=165, target=None):
+def content_words(text, L, lang):
+    out = set()
+    for w in words(text, lang):
+        k = w.lower()
+        k = strip_accents(k) if L["fold"] else k
+        if k not in L["stopwords"]:
+            out.add(k)
+    return out
+
+
+def analyse(raw, wpm=165, target=None, lang=DEFAULT_LANG):
+    L = DATA[lang]
+    m = L["msg"]
     wps = wpm / 60.0
-    beats = split_beats(raw, wps)
+    beats = split_beats(raw, wps, lang)
     if not beats:
         return None
 
     rows, clock = [], 0.0
     for i, text in enumerate(beats):
-        n = len(words(text))
+        n = len(words(text, lang))
         dur = n / wps
         rows.append({
             "n": i + 1,
@@ -98,14 +213,14 @@ def analyse(raw, wpm=165, target=None):
             "dur": round(dur, 2),
             "words": n,
             "text": text,
-            "concrete": len(CONCRETE_RE.findall(text)),
+            "concrete": len(L["concrete_re"].findall(text)),
             "label": "",
             "flags": [],
         })
         clock += dur
-    total = clock
+    total = round(clock, 1)      # el mismo redondeo en la cabecera y en las notas
 
-    # Label the structural positions a Reel is actually built around.
+    # Las posiciones estructurales sobre las que se construye un Reel.
     for r in rows:
         if r["n"] == 1 or r["start"] + r["dur"] <= HOOK_WINDOW:
             r["label"] = "HOOK"
@@ -117,22 +232,17 @@ def analyse(raw, wpm=165, target=None):
 
     notes = []
     if rows[0]["dur"] > HOOK_WINDOW:
-        rows[0]["flags"].append(f"hook runs {rows[0]['dur']:.1f}s, past the {HOOK_WINDOW:.0f}s mark")
-        notes.append(f"Beat 1 takes {rows[0]['dur']:.1f}s to say. Cut it to "
-                     f"{int(HOOK_WINDOW * wps)} words or fewer, or the hook lands after "
-                     "the decision has been made.")
+        rows[0]["flags"].append(m["flag_hook"].format(d=rows[0]["dur"], w=HOOK_WINDOW))
+        notes.append(m["note_hook"].format(d=rows[0]["dur"], n=int(HOOK_WINDOW * wps)))
     if rows[0]["concrete"] == 0:
-        notes.append("Beat 1 has no number and no name in it. Hooks without something "
-                     "checkable are the ones that get scrolled.")
+        notes.append(m["note_hook_abstract"])
 
     for r in rows:
         if r["dur"] > MAX_BEAT:
-            r["flags"].append(f"{r['dur']:.1f}s on one beat")
+            r["flags"].append(m["flag_long"].format(d=r["dur"]))
     long_beats = [r["n"] for r in rows if r["dur"] > MAX_BEAT]
     if long_beats:
-        notes.append(f"Beat(s) {', '.join(map(str, long_beats))} run past {MAX_BEAT:.0f}s. "
-                     "Either split the line or change what is on screen inside it. "
-                     "A static frame is where people leave.")
+        notes.append(m["note_long"].format(beats=", ".join(map(str, long_beats)), m=MAX_BEAT))
 
     run, start = 0, None
     for r in rows:
@@ -140,33 +250,29 @@ def analyse(raw, wpm=165, target=None):
             run += 1
             start = start if start is not None else r["n"]
             if run == ABSTRACT_RUN:
-                notes.append(f"Beats {start}-{r['n']} have nothing concrete in them. "
-                             "Put a number, a name or a price in one of them.")
+                notes.append(m["note_abstract"].format(a=start, b=r["n"]))
         else:
             run, start = 0, None
 
-    # Does the last line hand you back to the first one?
-    first = {w.lower() for w in words(rows[0]["text"]) if w.lower() not in STOPWORDS}
-    last = {w.lower() for w in words(rows[-1]["text"]) if w.lower() not in STOPWORDS}
-    loop = sorted(pretty(w) for w in first & last)
+    # ¿La última línea te devuelve a la primera?
+    loop = sorted(pretty(w, lang) for w in
+                  content_words(rows[0]["text"], L, lang) & content_words(rows[-1]["text"], L, lang))
     if loop:
-        notes.append(f"Loops: the last beat repeats \"{', '.join(loop[:3])}\" from the hook. "
-                     "Second watches are free reach.")
+        notes.append(m["note_loop"].format(w=", ".join(loop[:3])))
     else:
-        notes.append("No loop. The last beat shares no word with the hook, so the video "
-                     "ends flat. Echoing one word from beat 1 is the cheapest replay you get.")
+        notes.append(m["note_noloop"])
 
     if target:
         delta = total - target
         if abs(delta) <= target * 0.1:
-            notes.append(f"Length is on target ({total:.1f}s against {target}s).")
+            notes.append(m["note_on_target"].format(total=total, t=target))
         elif delta > 0:
-            notes.append(f"{delta:.1f}s over target. Cut about {int(delta * wps)} words.")
+            notes.append(m["note_over"].format(d=delta, n=int(delta * wps)))
         else:
-            notes.append(f"{-delta:.1f}s under target. Either add {int(-delta * wps)} words "
-                         "or shoot it short. Short is usually right.")
+            notes.append(m["note_under"].format(d=-delta, n=int(-delta * wps)))
 
     return {
+        "lang": lang,
         "wpm": wpm, "target": target,
         "total_seconds": round(total, 2),
         "total_words": sum(r["words"] for r in rows),
@@ -176,15 +282,18 @@ def analyse(raw, wpm=165, target=None):
 
 
 def render(a, out=sys.stdout):
-    head = (f"BEAT SHEET  ·  {a['total_words']} words  ·  ~{a['total_seconds']:.1f}s "
-            f"at {a['wpm']} wpm" + (f"  ·  target {a['target']}s" if a["target"] else ""))
+    L = DATA[a["lang"]]
+    m, lab = L["msg"], L["labels"]
+    width = max(len(v) for v in lab.values()) + 2
+    head = m["head"].format(words=a["total_words"], secs=a["total_seconds"], wpm=a["wpm"]) + (
+        m["target"].format(t=a["target"]) if a["target"] else "")
     print("\n" + head, file=out)
     print("=" * max(len(head), 72), file=out)
     for r in a["beats"]:
-        label = f"{r['label']:<8}" if r["label"] else " " * 8
+        label = f"{lab[r['label']]:<{width}}" if r["label"] else " " * width
         print(f"  {tc(r['start'])}  {r['dur']:4.1f}s  {label}{r['text']}", file=out)
         for f in r["flags"]:
-            print(f"  {'':>6}  {'':>5}  {'':<8}^ {f}", file=out)
+            print(f"  {'':>6}  {'':>5}  {'':<{width}}^ {f}", file=out)
     print("-" * max(len(head), 72), file=out)
     for n in a["notes"]:
         print(f"  - {n}", file=out)
@@ -192,17 +301,20 @@ def render(a, out=sys.stdout):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Time a Reel script into a beat sheet.")
-    ap.add_argument("input", nargs="?", default="-", help="script file, or - for stdin")
-    ap.add_argument("--wpm", type=float, default=165, help="speaking rate (default 165)")
-    ap.add_argument("--target", type=float, help="target length in seconds")
+    ap = argparse.ArgumentParser(description="Cronometra un guion de Reel en una escaleta.")
+    ap.add_argument("input", nargs="?", default="-", help="archivo de guion, o - para stdin")
+    ap.add_argument("--wpm", type=float, default=165,
+                    help="ritmo al hablar, palabras por minuto (por defecto 165)")
+    ap.add_argument("--target", type=float, help="duración objetivo en segundos")
+    ap.add_argument("--lang", choices=LANGS, default=DEFAULT_LANG,
+                    help=f"idioma de los mensajes y las palabras vacías (por defecto {DEFAULT_LANG})")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
     raw = sys.stdin.read() if args.input == "-" else open(args.input, encoding="utf-8").read()
-    a = analyse(raw, wpm=args.wpm, target=args.target)
+    a = analyse(raw, wpm=args.wpm, target=args.target, lang=args.lang)
     if not a:
-        print("empty script", file=sys.stderr)
+        print(DATA[args.lang]["msg"]["empty"], file=sys.stderr)
         sys.exit(2)
     if args.json:
         print(json.dumps(a, indent=2, ensure_ascii=False))
