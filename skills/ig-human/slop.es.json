@@ -66,21 +66,6 @@
       "family": "verbos"
     },
     {
-      "find": "desbloquear",
-      "replace": "conseguir",
-      "family": "verbos"
-    },
-    {
-      "find": "desbloquea",
-      "replace": "consigue",
-      "family": "verbos"
-    },
-    {
-      "find": "desbloquearás",
-      "replace": "conseguirás",
-      "family": "verbos"
-    },
-    {
       "find": "potenciar",
       "replace": "mejorar",
       "family": "verbos"
@@ -142,12 +127,12 @@
     },
     {
       "find": "fomentar",
-      "replace": "crear",
+      "replace": "impulsar",
       "family": "verbos"
     },
     {
       "find": "fomenta",
-      "replace": "crea",
+      "replace": "impulsa",
       "family": "verbos"
     },
     {
@@ -402,52 +387,22 @@
     },
     {
       "find": "asombroso",
-      "replace": "muy bueno",
+      "replace": "sorprendente",
       "family": "adjetivos"
     },
     {
       "find": "asombrosa",
-      "replace": "muy buena",
+      "replace": "sorprendente",
       "family": "adjetivos"
     },
     {
       "find": "asombrosos",
-      "replace": "muy buenos",
+      "replace": "sorprendentes",
       "family": "adjetivos"
     },
     {
       "find": "asombrosas",
-      "replace": "muy buenas",
-      "family": "adjetivos"
-    },
-    {
-      "find": "potente",
-      "replace": "útil",
-      "family": "adjetivos"
-    },
-    {
-      "find": "potentes",
-      "replace": "útiles",
-      "family": "adjetivos"
-    },
-    {
-      "find": "poderoso",
-      "replace": "útil",
-      "family": "adjetivos"
-    },
-    {
-      "find": "poderosa",
-      "replace": "útil",
-      "family": "adjetivos"
-    },
-    {
-      "find": "poderosos",
-      "replace": "útiles",
-      "family": "adjetivos"
-    },
-    {
-      "find": "poderosas",
-      "replace": "útiles",
+      "replace": "sorprendentes",
       "family": "adjetivos"
     },
     {
@@ -523,6 +478,21 @@
       "family": "verbos"
     },
     {
+      "find": "desbloquea tu potencial",
+      "replace": "aprovecha tu potencial",
+      "family": "verbos"
+    },
+    {
+      "find": "desbloquea todo tu potencial",
+      "replace": "aprovecha todo tu potencial",
+      "family": "verbos"
+    },
+    {
+      "find": "desbloquear tu potencial",
+      "replace": "aprovechar tu potencial",
+      "family": "verbos"
+    },
+    {
       "find": "potencia tu",
       "replace": "mejora tu",
       "family": "verbos"
@@ -594,17 +564,17 @@
     },
     {
       "find": "desata tu potencial",
-      "replace": "mejora",
+      "replace": "aprovecha tu potencial",
       "family": "verbos"
     },
     {
       "find": "desata todo tu potencial",
-      "replace": "mejora",
+      "replace": "aprovecha todo tu potencial",
       "family": "verbos"
     },
     {
       "find": "libera tu potencial",
-      "replace": "mejora",
+      "replace": "aprovecha tu potencial",
       "family": "verbos"
     },
     {
@@ -648,11 +618,6 @@
       "family": "verbos"
     },
     {
-      "find": "en este viaje",
-      "replace": "en este proceso",
-      "family": "sustantivos"
-    },
-    {
       "find": "un game changer",
       "replace": "un gran cambio",
       "family": "sustantivos"
@@ -668,8 +633,38 @@
       "family": "sustantivos"
     },
     {
-      "find": "un antes y un después",
-      "replace": "un gran cambio",
+      "find": "marcó un antes y un después",
+      "replace": "fue un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marcaron un antes y un después",
+      "replace": "fueron un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marca un antes y un después",
+      "replace": "es un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marcan un antes y un después",
+      "replace": "son un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marcará un antes y un después",
+      "replace": "será un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marcado un antes y un después",
+      "replace": "sido un gran cambio",
+      "family": "sustantivos"
+    },
+    {
+      "find": "marcar un antes y un después",
+      "replace": "ser un gran cambio",
       "family": "sustantivos"
     },
     {
@@ -688,28 +683,13 @@
       "family": "sustantivos"
     },
     {
-      "find": "un pilar fundamental",
-      "replace": "una base",
-      "family": "sustantivos"
-    },
-    {
       "find": "el pilar fundamental",
       "replace": "la base",
       "family": "sustantivos"
     },
     {
-      "find": "una hoja de ruta",
-      "replace": "un plan",
-      "family": "sustantivos"
-    },
-    {
-      "find": "la hoja de ruta",
-      "replace": "el plan",
-      "family": "sustantivos"
-    },
-    {
-      "find": "tu hoja de ruta",
-      "replace": "tu plan",
+      "find": "hoja de ruta",
+      "replace": "ruta",
       "family": "sustantivos"
     },
     {
@@ -758,13 +738,18 @@
       "family": "sustantivos"
     },
     {
+      "find": "del secreto mejor guardado",
+      "replace": "del truco",
+      "family": "sustantivos"
+    },
+    {
       "find": "el secreto mejor guardado",
-      "replace": "lo que funciona",
+      "replace": "el truco",
       "family": "sustantivos"
     },
     {
       "find": "la clave del éxito",
-      "replace": "lo que funciona",
+      "replace": "la clave",
       "family": "sustantivos"
     },
     {
@@ -799,17 +784,17 @@
     },
     {
       "find": "el algoritmo ama",
-      "replace": "Instagram empuja",
+      "replace": "Instagram premia",
       "family": "sustantivos"
     },
     {
       "find": "al algoritmo le encanta",
-      "replace": "Instagram empuja",
+      "replace": "Instagram premia",
       "family": "sustantivos"
     },
     {
       "find": "al algoritmo le encantan",
-      "replace": "Instagram empuja",
+      "replace": "Instagram premia",
       "family": "sustantivos"
     },
     {
@@ -839,12 +824,12 @@
     },
     {
       "find": "de vanguardia",
-      "replace": "reciente",
+      "replace": "del momento",
       "family": "adjetivos"
     },
     {
       "find": "de última generación",
-      "replace": "reciente",
+      "replace": "del momento",
       "family": "adjetivos"
     },
     {
@@ -864,12 +849,12 @@
     },
     {
       "find": "sin precedentes",
-      "replace": "enorme",
+      "replace": "de récord",
       "family": "adjetivos"
     },
     {
       "find": "sin esfuerzo",
-      "replace": "fácil",
+      "replace": "sin complicaciones",
       "family": "adjetivos"
     },
     {
@@ -903,13 +888,8 @@
       "family": "conectores"
     },
     {
-      "find": "en consecuencia",
-      "replace": "así que",
-      "family": "conectores"
-    },
-    {
       "find": "por consiguiente",
-      "replace": "así que",
+      "replace": "por eso",
       "family": "conectores"
     },
     {
@@ -953,11 +933,6 @@
       "family": "conectores"
     },
     {
-      "find": "dicho esto",
-      "replace": "",
-      "family": "conectores"
-    },
-    {
       "find": "en definitiva",
       "replace": "al final",
       "family": "conectores"
@@ -975,11 +950,6 @@
     {
       "find": "en conclusión",
       "replace": "así que",
-      "family": "conectores"
-    },
-    {
-      "find": "a la hora de",
-      "replace": "al",
       "family": "conectores"
     },
     {
@@ -1309,12 +1279,7 @@
     },
     {
       "find": "nadie está hablando de esto",
-      "replace": "poca gente hace esto",
-      "family": "aperturas"
-    },
-    {
-      "find": "nadie habla de esto",
-      "replace": "poca gente hace esto",
+      "replace": "poca gente habla de esto",
       "family": "aperturas"
     },
     {
@@ -1418,11 +1383,6 @@
       "family": "cierres"
     },
     {
-      "find": "al final del día",
-      "replace": "al final",
-      "family": "cierres"
-    },
-    {
       "find": "mover la aguja",
       "replace": "marcar la diferencia",
       "family": "cierres"
@@ -1513,11 +1473,6 @@
       "family": "cierres"
     },
     {
-      "find": "etiqueta a ese amigo que",
-      "replace": "",
-      "family": "cierres"
-    },
-    {
       "find": "comparte esto con alguien que lo necesite",
       "replace": "",
       "family": "cierres"
@@ -1561,7 +1516,7 @@
     },
     {
       "id": "triada",
-      "regex": "(?i)\\b\\w+, \\w+ (?:y|e) \\w+\\.",
+      "regex": "(?im)(?:^[ \\t]*|(?<=[.!?:]\\s))[¡¿]?\\w+, \\w+ (?:y|e) \\w+\\.|\\b(?:es|son|era|eran|fue|fueron|sea|sean|será|serán|ser)\\s+\\w+, \\w+ (?:y|e) \\w+\\.",
       "name": "Tríada de tres",
       "fix": "Dos elementos o cuatro. Tres es el ritmo por defecto del modelo."
     },
@@ -1579,7 +1534,7 @@
     },
     {
       "id": "como-ia",
-      "regex": "(?i)\\bcomo (?:una )?(?:ia|inteligencia artificial)\\b|\\bcomo (?:un )?modelo de lenguaje\\b",
+      "regex": "(?im)(?:^[ \\t]*|(?<=[.!?:]\\s)|(?<=[¡¿]))como (?:una |un )?(?:ia|inteligencia artificial|modelo de (?:lenguaje|ia|inteligencia artificial)|asistente de (?:ia|inteligencia artificial))\\s*,|(?<=,\\s)como (?:ia|inteligencia artificial|modelo de (?:lenguaje|ia|inteligencia artificial)|asistente de (?:ia|inteligencia artificial))\\s*,|\\bcomo (?:ia|inteligencia artificial|modelo de (?:lenguaje|ia|inteligencia artificial)|asistente de (?:ia|inteligencia artificial)),?\\s+(?:no\\s+)?(?:puedo|tengo|debo|soy|estoy|dispongo|cuento|me es posible)\\b|(?<!\\bno )\\bsoy (?:una |un )?(?:ia|inteligencia artificial|modelo de (?:lenguaje|ia|inteligencia artificial)|asistente de (?:ia|inteligencia artificial))\\b",
       "name": "El modelo hablando de sí mismo",
       "fix": "Borra la frase."
     },
