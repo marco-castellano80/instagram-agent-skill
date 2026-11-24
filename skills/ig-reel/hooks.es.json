@@ -20,7 +20,7 @@
       "on_screen": "ERROR DE 18.000 €",
       "best_for": "Confianza, rápido. La gente termina los vídeos en los que el que queda mal eres tú.",
       "trap": "Un coste falso. 'Me costó la tranquilidad' no es un número y se nota.",
-      "match": "\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos)\\s+(?:es|fue|son|fueron) lo que\\b|[$€]\\s?\\d[\\d.,]*\\s+(?:es|fue|son|fueron) lo que\\b|\\b(?:me|nos|le|les) (?:costo|ha costado|cuesta|salio por)\\b[^.!?]{0,15}(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos|mil)|\\b(?:un|una|el|la|mi|mis|dos|tres) (?:cliente|clientes|contrato|contratos|trabajo|empresa|negocio|cuenta|socio)\\b)|\\b(?:perdi|he perdido|perdimos|hemos perdido)\\b[^.!?]{0,25}(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos|mil)\\b)"
+      "match": "\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos)\\s+(?:es|fue|son|fueron) lo que\\b|[$€]\\s?\\d[\\d.,]*\\s+(?:es|fue|son|fueron) lo que\\b|\\b(?:me|nos|le|les) (?:costo|ha costado|cuesta|salio por)\\b[^.!?]{0,15}(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos|mil)|\\b(?:un|una|el|la|mi|mis|dos|tres) (?:cliente|clientes|contrato|contratos|trabajo|empresa|negocio|cuenta|socio)\\b)|\\b(?:perdi|he perdido|perdimos|hemos perdido)\\b[^.!?]{0,25}(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|(?:euros?|dolares|pesos|mil)\\b))"
     },
     {
       "id": 2,
@@ -40,7 +40,7 @@
       "on_screen": "TUS PRIMEROS 30 FRACASARÁN",
       "best_for": "Audiencias nuevas. Te coloca como la persona que dice en voz alta lo que nadie dice.",
       "trap": "Elegir una verdad que ya dice todo el mundo. Si los comentarios te dan la razón antes de que acabes, no era ningún secreto.",
-      "match": "\\bnadie (?:nunca )?(?:te |os |les |nos )?(?:lo )?(?:dice|dijo|cuenta|conto|explica|explico|ensena|menciona|avisa|aviso)\\b|\\blo que nadie (?:te |os |les )?(?:dice|cuenta|explica|ensena)\\b|\\bnadie habla de\\b"
+      "match": "\\bnadie (?:nunca )?(?:me |te |os |les |nos )?(?:lo )?(?:dice|dijo|cuenta|conto|explica|explico|ensena|enseno|menciona|avisa|aviso)\\b|\\blo que nadie (?:me |te |os |les )?(?:dice|dijo|cuenta|conto|explica|ensena)\\b|\\bnadie (?:te |os |nos )?habla de\\b"
     },
     {
       "id": 4,
@@ -50,7 +50,7 @@
       "on_screen": "2.000 € -> 12 €",
       "best_for": "Demos y vídeos de herramientas. La diferencia de precio hace el trabajo.",
       "trap": "Exagerar la sustitución. Si sustituyó el 60% del trabajo, di 60%, o lo dirán los comentarios por ti.",
-      "match": "\\b(?:sustitu\\w*|reemplaz\\w*)\\b[^.!?]*(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos))|(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos))[^.!?]*\\b(?:sustitu\\w*|reemplaz\\w*)\\b|\\ben (?:vez|lugar) de (?:pagar|contratar)\\b"
+      "match": "\\b(?:sustitu\\w*|reempla[zc]\\w*)\\b[^.!?]*(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos))|(?:[$€]\\s?\\d|\\d[\\d.,]*\\s*(?:€|euros?|dolares|pesos))[^.!?]*\\b(?:sustitu\\w*|reempla[zc]\\w*)\\b|\\ben (?:vez|lugar) de (?:pagar|contratar)\\b"
     },
     {
       "id": 5,
@@ -60,17 +60,17 @@
       "on_screen": "5 HORAS -> 20 MIN",
       "best_for": "Vídeos de proceso donde la recompensa es la velocidad. Se entiende al instante en pantalla.",
       "trap": "Una proporción que nadie se cree. De 40 horas a 4 segundos suena a mentira aunque sea verdad.",
-      "match": "\\b(?:antes )?me (?:llevaba|costaba|tomaba)\\b[^.!?]{0,30}\\b(?:horas?|dias?|semanas?|meses|minutos?)\\b|\\bantes tardaba\\b|\\bahora (?:solo )?(?:me )?(?:lleva|llevan|tarda|tardo|cuesta)\\b|\\b(?:tardo|tarda|tardas|lleva) (?:solo )?\\d+\\s*(?:seg|segundos?|min|minutos?|horas?|h)\\b|\\bde (?:\\d+|\\w+) (?:horas?|dias?|semanas?) a (?:\\d+|\\w+) (?:minutos?|min|horas?)\\b"
+      "match": "\\b(?:antes )?me (?:llevaba|costaba|tomaba)\\b[^.!?]{0,30}\\b(?:horas?|dias?|semanas?|mes(?:es)?|minutos?)\\b|\\bantes tardaba\\b|\\bahora (?:solo )?(?:me )?(?:lleva|llevan|tarda|tardo|cuesta)\\b|\\b(?:tardo|tarda|tardas|lleva) (?:solo )?\\d+\\s*(?:seg|segundos?|min|minutos?|horas?|h)\\b|\\bde (?:\\d+|\\w+) (?:horas?|dias?|semanas?) a (?:\\d+|\\w+) (?:minutos?|min|horas?)\\b"
     },
     {
       "id": 6,
       "name": "Los números reales",
       "template": "Hice {cosa} durante {N días}. Estos son los números reales.",
-      "example": "Publiqué un reel al día durante 60 días. Esto es lo que le hizo a mis mensajes.",
+      "example": "Publiqué un reel al día durante 60 días. Esto es lo que pasó con mis mensajes.",
       "on_screen": "60 DÍAS. NÚMEROS REALES.",
       "best_for": "Experimentos. Va con una grabación de pantalla del panel real, que es todo el valor.",
       "trap": "No enseñar la pantalla. Un vídeo de números sin grabación de pantalla es solo una afirmación con números.",
-      "match": "\\b(?:publique|hice|subi|probe|estuve|use|grabe|escribi|mande|cobre|lance)\\b[^.!?]{0,30}\\bdurante (?:\\d+|\\w+) (?:dias?|semanas?|meses|anos?)\\b|\\b\\d+ (?:dias?|semanas?|meses) (?:publicando|haciendo|subiendo|probando|grabando)\\b|\\b(?:aqui (?:tienes|estan|van)|estos son|te ensen\\w+) (?:los|mis) (?:numeros|resultados)\\b|\\bnumeros reales\\b"
+      "match": "\\b(?:publique|hice|subi|probe|estuve|use|grabe|escribi|mande|cobre|lance)\\b[^.!?]{0,30}\\bdurante (?:\\d+|\\w+) (?:dias?|semanas?|mes(?:es)?|anos?)\\b|\\b\\d+ (?:dias?|semanas?|mes(?:es)?) (?:publicando|haciendo|subiendo|probando|grabando)\\b|\\b(?:aqui (?:tienes|estan|van)|estos son|te ensen\\w+) (?:los|mis) (?:numeros|resultados)\\b|\\bnumeros reales\\b"
     },
     {
       "id": 7,
@@ -110,13 +110,13 @@
       "on_screen": "¿VISTAS PERO NO SEGUIDORES?",
       "best_for": "Filtrar fuerte. Se queda menos gente, y la que se queda es la que compra.",
       "trap": "Una situación tan amplia que no filtra a nadie. 'Si quieres crecer' no es una situación.",
-      "match": "^\\s*si (?!,)(?:eres|tienes|vendes|trabajas|quieres|estas|haces|te|tu|tus|alguna vez|llevas|cobras|usas|has|mi|mis|nos|tienen|tus)\\b"
+      "match": "^\\s*si (?:no |ya |nunca )?(?:eres|tienes|vendes|trabajas|quieres|estas|haces|te|tu|tus|alguna vez|llevas|cobras|usas|has|mi|mis|nos|tienen|publicas|buscas|vives|sueles|necesitas|grabas|subes|sientes|crees|piensas|ganas|empiezas)\\b"
     },
     {
       "id": 11,
       "name": "Lista con favorita",
       "template": "{N} {cosas} que {resultado}. La número {k} es la que nadie usa.",
-      "example": "Cinco cambios en el texto que duplican los guardados. El cuarto es el que nadie hace.",
+      "example": "Cinco cambios que duplican tus guardados. El cuarto es el que nadie hace.",
       "on_screen": "5 CAMBIOS. EL 4 ES EL BUENO.",
       "best_for": "Retención en la parte media: nombrar una favorita da un motivo para quedarse pasado el tercero.",
       "trap": "Más de siete. Nadie se cree que tengas nueve buenas, y no las tienes.",
@@ -140,13 +140,13 @@
       "on_screen": "MARZO  /  AHORA",
       "best_for": "Cualquier cosa visual. El corte entre los dos planos es el gancho; las palabras son lo de menos.",
       "trap": "Tres palancas. Nombra una sola cosa que cambió o la transformación deja de ser creíble.",
-      "match": "\\b(?:esto|eso|este|esta|asi) era\\b[^.!?]*[.!?]\\s*(?:esto|eso|este|esta|asi) es\\b|\\bantes\\b[^.!?]*\\bdespues\\b|\\bmir(?:o|e) atras\\b|\\bhace (?:un ano|\\d+ (?:anos|meses))\\b[^.!?]*\\b(?:hoy|ahora)\\b"
+      "match": "\\b(?:esto|eso|este|esta|asi) era\\b[^.!?]*[.!?]\\s*(?:esto|eso|este|esta|asi) es\\b|\\bantes\\b[^.!?]*\\bdespues\\b|\\bmir(?:o|e) atras\\b|\\bhace (?:un ano|un mes|\\d+ (?:anos|meses))\\b[^.!?]*\\b(?:hoy|ahora)\\b"
     },
     {
       "id": 14,
       "name": "La llamada directa",
       "template": "{Grupo concreto}, esto es lo que llevas tiempo ignorando.",
-      "example": "Fotógrafos que cobráis menos de 2.000 €: esta es la página de precios que lleváis tiempo evitando.",
+      "example": "Fotógrafos: si cobras menos de 2.000 €, esta es la página de precios que llevas tiempo evitando.",
       "on_screen": "FOTÓGRAFOS POR DEBAJO DE 2.000 €",
       "best_for": "Recortar una audiencia amplia hasta la que convierte. Suben los envíos porque la gente se etiqueta.",
       "trap": "Un grupo tan grande que no es una llamada. 'Emprendedores' no es un grupo.",
@@ -160,7 +160,7 @@
       "on_screen": "47 FRACASOS Y LUEGO ESTO",
       "best_for": "La gente que está empezando, que es la mayor parte de la audiencia. Mucho comentario.",
       "trap": "Que el cambio suene a suerte. Si la respuesta es 'tuve suerte', no hay vídeo.",
-      "match": "\\bmis primer[oa]s\\s+(?:\\d+|\\w+)\\b|\\b(?:los|las) primer[oa]s\\s+(?:\\d+|\\w+)\\s+(?:reels?|videos?|posts?|publicaciones|clientes?|meses|ventas|propuestas)\\b"
+      "match": "\\bmis primer[oa]s\\s+(?:\\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte|treinta|cuarenta|cincuenta|cien|mil)\\b|\\b(?:los|las) primer[oa]s\\s+(?:\\d+|\\w+)\\s+(?:reels?|videos?|posts?|publicaciones|clientes?|meses|ventas|propuestas)\\b"
     },
     {
       "id": 16,
@@ -170,7 +170,7 @@
       "on_screen": "ME LO PREGUNTAN CADA SEMANA",
       "best_for": "Búsqueda. Una pregunta escrita como la escribe la gente es justo lo que compara el buscador de Instagram.",
       "trap": "Arreglar la pregunta. El valor está en que son sus palabras, faltas incluidas.",
-      "match": "^\\s*[\"“'«]?\\s*¿?\\s*(?:como|que|por que|cuando|donde|quien|cual|cuanto|cuanta|cuantos|cuantas|se puede|puedo|deberia|debo|es|hay|tienes|has|vale la pena)\\b[^?]{3,110}\\?"
+      "match": "^\\s*[\"“'«]?\\s*¿?\\s*(?:(?:y|pero|entonces)\\s+(?![^?]*¿))?(?:como|que|por que|cuando|donde|quien|cual|cuanto|cuanta|cuantos|cuantas|se puede|puedo|deberia|debo|es|hay|tienes|has|vale la pena)\\b[^?]{3,110}\\?"
     },
     {
       "id": 17,
@@ -180,7 +180,7 @@
       "on_screen": "CARRUSELES vs REELS",
       "best_for": "Comentarios. La gente llega ya con una opinión, que es justo la idea.",
       "trap": "No mojarse. Una comparación con final diplomático es un vídeo sin final.",
-      "match": "\\b(?:vs\\.?|versus)\\b|\\bdiferencias? entre\\b|\\b(?:a|el) o (?:b|el)\\b|\\bcual es mejor\\b|^\\s*[\\w ]{2,30}\\bcontra\\b [\\w ]{2,30}[.:,]"
+      "match": "\\b(?:vs\\.?|versus)\\b|\\bdiferencias? entre\\b|\\b(?:a|el) o (?:b|el)\\b|\\bcual es mejor\\b|^\\s*\\w+(?: \\w+)?\\s+(?<!\\ben )contra\\s+(?!(?:el|la|los|las|lo|mi|mis|tu|tus|su|sus|un|una|unos|unas|todo|todos|todas|ti|nadie)\\b)\\w+(?: \\w+)?\\s*[.:,?]"
     },
     {
       "id": 18,
@@ -200,7 +200,7 @@
       "on_screen": "ANTES DE VOLVER A PUBLICAR",
       "best_for": "Urgencia real. Cambios de la plataforma, temporadas, cambios de normas.",
       "trap": "Urgencia fabricada. Una fecha límite falsa y todas las siguientes valen menos.",
-      "match": "\\bantes de que\\b[^.!?]*\\b(?:cambie|cambien|acabe|acaben|cierre|cierren|termine|caduque|desaparezca|suba|suban)\\b|\\bcambia(?:n)? el (?:\\d+|lunes|martes|miercoles|jueves|viernes|sabado|domingo)\\b|\\b(?:antes de|para|en) 20\\d\\d\\b|\\bsolo hasta el\\b|\\bantes de volver a publicar\\b"
+      "match": "\\bantes de que\\b[^.!?]*\\b(?:cambie|cambien|acabe|acaben|cierre|cierren|termine|caduque|desaparezca|suba|suban)\\b|\\bcambia(?:n)? el (?:\\d+|lunes|martes|miercoles|jueves|viernes|sabado|domingo)\\b|\\b(?:antes de|para) 20\\d\\d\\b|\\bsolo hasta el\\b|\\bantes de volver a publicar\\b"
     },
     {
       "id": 20,
@@ -260,7 +260,7 @@
       "on_screen": "1M DE SUSCRIPTORES EN UN MES",
       "best_for": "Prueba cuando el usuario aún no tiene su propio número. La tercera persona vale si es verdad.",
       "trap": "Sin nombre y sin enlace. Un milagro anónimo es un rumor.",
-      "match": "\\b(?:hubo|habia|hay|tengo|tuve) (?:un|una) (?:chico|chica|creador|creadora|alumno|alumna|cliente|clienta|amigo|amiga|fundador|fundadora|emprendedor|emprendedora|tio|tia)\\b|\\b(?:un|una) (?:chico|chica|creador|creadora|alumno|alumna|cliente|clienta|amigo|amiga|fundador|fundadora)\\b(?: que conozco)? que (?:paso|gano|facturo|consiguio|creo|monto|llego|crecio|hizo|vendio)\\b|\\bmi (?:cliente|clienta|alumno|alumna) \\w+ (?:paso|gano|facturo|consiguio|llego|crecio|vendio)\\b"
+      "match": "\\b(?:hubo|habia|hay|tengo|tuve) (?:un|una) (?:chico|chica|creador|creadora|alumno|alumna|cliente|clienta|amigo|amiga|fundador|fundadora|emprendedor|emprendedora|tio|tia)\\b|\\b(?:un|una) (?:chico|chica|creador|creadora|alumno|alumna|cliente|clienta|amigo|amiga|fundador|fundadora)\\b (?:que conozco |mio |mia |que )(?:paso|gano|facturo|consiguio|creo|monto|llego|crecio|hizo|vendio)\\b|\\bmi (?:cliente|clienta|alumno|alumna) \\w+ (?:paso|gano|facturo|consiguio|llego|crecio|vendio)\\b"
     },
     {
       "id": 26,
