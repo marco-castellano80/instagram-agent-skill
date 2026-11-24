@@ -1531,7 +1531,7 @@
   "structures": [
     {
       "id": "no-solo",
-      "regex": "(?i)\\bno (?:es|se trata de) (?:solo|sólo|solamente|únicamente) [^.!?\\n]{2,60}[,.;]\\s*(?:es|se trata de)\\b",
+      "regex": "(?i)\\bno (?:es|se trata de) (?:solo|sólo|solamente|únicamente) [^.!?\\n—]{2,60}\\s*[,.;—]\\s*(?:es|se trata de)\\b",
       "name": "«No es solo X, es Y»",
       "fix": "Di lo único que quieres decir. Borra la mitad que prepara."
     },

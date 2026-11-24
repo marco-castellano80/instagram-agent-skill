@@ -235,6 +235,9 @@ def pass_lexical(text, lex, lang, m):
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)      # una raya se volvió coma y luego
                                                       # se fue la cláusula de detrás
     text = re.sub(r"([¿¡])\s*[,;:]\s*", r"\1", text)   # "¿, qué" -> "¿qué"
+    # Borrar todo lo que había entre ¡ y ! (o ¿ y ?) deja los signos solos.
+    text = re.sub(r"(?m)^[ \t]*[¡¿][ \t]*[!?]+[ \t]*(?:\n|$)", "", text)
+    text = re.sub(r"[ \t]*[¡¿][ \t]*[!?]+", "", text)
     # "Funciona., hay" -> "Funciona. hay" (respeta "etc.," y "p. ej.,")
     text = re.sub(r"(?<!etc)(?<!ej)(?<!aprox)([.!?])[ \t]*[,;:]+[ \t]*", r"\1 ", text)
     text = re.sub(r"\.\s*\.+", ".", text)
