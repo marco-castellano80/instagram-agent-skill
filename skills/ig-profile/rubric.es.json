@@ -1,0 +1,92 @@
+{
+  "version": "1.0-es",
+  "lang": "es",
+  "total": 100,
+  "note": "Doce puntos. Puntúa cada uno con honestidad: una nota generosa no ayuda a nadie. La mayoría de los perfiles en una primera pasada se quedan entre 30 y 40. La ponderación es deliberada: el campo de nombre, la primera línea de la bio y las tres fijadas valen más que la foto, porque son lo que procesa de verdad un desconocido que llega desde un reel antes de decidir si te sigue.",
+  "items": [
+    {
+      "id": "name_field",
+      "label": "campo de nombre",
+      "points": 12,
+      "full_marks": "El campo de nombre (30 caracteres, la línea en negrita, no el @) lleva el nombre más lo que haces con las palabras que la gente busca: 'Dana Ruiz | Plantillas de propuestas'. El buscador de Instagram indexa este campo y la mayoría de las cuentas lo desperdician con un nombre a secas.",
+      "common_fail": "Solo un nombre, o un nombre con un emoji."
+    },
+    {
+      "id": "bio_first_line",
+      "label": "primera línea de la bio",
+      "points": 12,
+      "full_marks": "La primera línea dice para quién es y qué cambia para esa persona, con sus palabras. No un cargo, no una lista de adjetivos, no tres emojis separados por barras.",
+      "common_fail": "'Emprendedora | Amante del café | Mamá de perros'."
+    },
+    {
+      "id": "bio_body",
+      "label": "resto de la bio",
+      "points": 8,
+      "full_marks": "El resto de los 150 caracteres lleva una prueba o una oferta concreta, y se lee como frases, no como una lista separada por barras.",
+      "common_fail": "Sopa de palabras clave, o espacio en blanco."
+    },
+    {
+      "id": "pinned_three",
+      "label": "las tres fijadas",
+      "points": 10,
+      "full_marks": "Tres publicaciones fijadas arriba de la cuadrícula, cada una con un trabajo distinto: la mejor prueba, la explicación más clara de la oferta y la mejor presentación de la persona. No las tres con más visualizaciones por casualidad.",
+      "common_fail": "Nada fijado, así que arriba de la cuadrícula está lo último que se publicó."
+    },
+    {
+      "id": "link",
+      "label": "enlace",
+      "points": 8,
+      "full_marks": "Un destino que cuadra con lo que la bio acaba de prometer. Se permiten hasta cinco enlaces; más de dos ya es un menú, y un menú convierte peor que una puerta.",
+      "common_fail": "Un árbol de enlaces con once opciones, o ningún enlace."
+    },
+    {
+      "id": "highlights",
+      "label": "historias destacadas",
+      "points": 8,
+      "full_marks": "De cuatro a seis destacadas con el nombre de las preguntas que hace de verdad un comprador: Precios, Resultados, Cómo funciona, Sobre mí. Portadas coherentes. Nada de hace más de un año en primera posición.",
+      "common_fail": "'Random', 'Vida', 'Favs', o 14 destacadas sin orden."
+    },
+    {
+      "id": "grid_legibility",
+      "label": "cuadrícula legible",
+      "points": 8,
+      "full_marks": "Las nueve primeras portadas se leen a tamaño miniatura y dicen de qué va la cuenta sin un solo toque. Las portadas de los reels se eligen a propósito, no se deja el primer fotograma.",
+      "common_fail": "Nueve portadas de una cara a media palabra y sin texto."
+    },
+    {
+      "id": "photo",
+      "label": "foto",
+      "points": 6,
+      "full_marks": "La cara ocupa más o menos el 60% de un círculo que se ve a unos 40 píxeles. Ojos visibles, hecha en los dos últimos años, fondo que no compite.",
+      "common_fail": "Un plano de cuerpo entero, un logo para una marca personal, o una foto hecha con el brazo estirado en una habitación oscura."
+    },
+    {
+      "id": "handle",
+      "label": "nombre de usuario",
+      "points": 6,
+      "full_marks": "Legible, se puede decir en voz alta y es el mismo que en las demás plataformas. Sin guiones bajos encadenados ni números en lugar de letras.",
+      "common_fail": "Un @ que nadie sabe escribir después de oírlo una vez."
+    },
+    {
+      "id": "category_contact",
+      "label": "categoría y contacto",
+      "points": 6,
+      "full_marks": "Cuenta profesional con una categoría que cuadra con la oferta y botones de contacto que funcionan. Un email que se revisa, no el de 2019.",
+      "common_fail": "Cuenta personal, así que no hay estadísticas ni botón de contacto."
+    },
+    {
+      "id": "recent_activity",
+      "label": "actividad reciente",
+      "points": 10,
+      "full_marks": "Ha publicado en los últimos siete días y ha contestado los comentarios de la última publicación. Una cuenta que publicó por última vez en marzo parece cerrada.",
+      "common_fail": "Un hueco de cinco semanas, o un muro de comentarios sin contestar."
+    },
+    {
+      "id": "story_presence",
+      "label": "historias",
+      "points": 6,
+      "full_marks": "Una historia publicada ahora mismo, o al menos casi todos los días. Es la diferencia entre un perfil y una persona.",
+      "common_fail": "Sin aro, nunca."
+    }
+  ]
+}
