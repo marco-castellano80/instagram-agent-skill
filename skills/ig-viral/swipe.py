@@ -94,6 +94,7 @@ MSG = {
         "no_hooks": "note: hooks file not found, formulas not named. Pass --hooks.",
         "no_score": "note: hookscore.py not importable, hook scores skipped.",
         "wrote": "wrote {p}",
+        "bad_count": "note: could not read the number \"{v}\" in column {c}, left empty.",
     },
     "es": {
         "head": "SWIPE FILE  ·  {n} reels  ·  {a} cuentas  ·  referencia: {b}",
@@ -119,6 +120,8 @@ MSG = {
         "no_hooks": "nota: no se encontró el archivo de fórmulas, no se nombran. Usa --hooks.",
         "no_score": "nota: no se pudo importar hookscore.py, se omiten las notas de gancho.",
         "wrote": "escrito {p}",
+        "bad_count": "aviso: no se entiende la cifra «{v}» en la columna {c}, se deja vacía.",
+        "col_names": {"views": "vistas", "followers": "seguidores", "median": "mediana"},
     },
 }
 
@@ -128,16 +131,30 @@ def fold(s):
                    if unicodedata.category(c) != "Mn")
 
 
+# Palabras que a veces se cuelan detrás de la cifra al copiarla ("412k vistas").
+COUNT_WORDS_RE = re.compile(r"\s*\b(?:de\s+)?(?:vistas|visualizaciones|reproducciones|visitas"
+                            r"|seguidores|views|plays|followers)\b\.?")
+# Cifra, espacio opcional y sufijo. El sufijo no puede ir pegado a más letras:
+# "1 millón" es un millón, no un 1 seguido de basura.
+COUNT_RE = re.compile(r"~?\s*(\d+(?:[.,]\d+)?)\s*(k|mil|mm|millon(?:es)?|mill\.?|m)?(?![a-z])")
+
+
 def parse_count(raw):
-    """'412.000', '412,000', '412K', '412 mil', '1,2 M', '1.2M' -> int."""
+    """'412.000', '412,000', '412K', '412 mil', '1,2 M', '1.2M', '1 millón',
+    '1,5 mill.' -> int. Si la celda trae letras que no son un sufijo conocido,
+    devuelve None en vez de inventarse una cifra pequeña."""
     if not raw:
         return None
-    s = fold(raw).replace(" ", "").replace(" ", "")
-    m = re.fullmatch(r"(\d+(?:[.,]\d+)?)(k|mil|m|mill|millones|mm)?", s)
+    s = fold(raw).replace("\u00a0", " ").replace("\u202f", " ").strip()
+    s = COUNT_WORDS_RE.sub("", s).strip()
+    m = COUNT_RE.match(s)
     if m and m.group(2):
         num = float(m.group(1).replace(",", "."))
         mult = 1000 if m.group(2) in ("k", "mil") else 1000000
         return int(round(num * mult))
+    if re.search(r"[a-z]", s):
+        # Antes se quitaban todas las no-cifras y "1 millón" salía 1.
+        return None
     digits = re.sub(r"[^\d]", "", s)
     return int(digits) if digits else None
 
@@ -157,14 +174,17 @@ def load_formulas(path):
 def classify(hook, formulas, normalize, unclassified):
     if not formulas:
         return None, unclassified
-    text = fold(hook) if normalize else hook
+    # Los ¡ y ¿ de apertura se quitan: las fórmulas en español van ancladas
+    # con ^\s* y "¡Deja de cobrar por horas!" tiene que caer en la misma que
+    # "Deja de cobrar por horas.". Las comillas iniciales se dejan (la 12 las usa).
+    text = re.sub(r"^[\s¡¿]+", "", fold(hook)) if normalize else hook
     for fid, name, pattern in formulas:
         if pattern.search(text):
             return fid, name
     return None, unclassified
 
 
-def read_rows(path):
+def read_rows(path, lang=DEFAULT_LANG):
     raw = sys.stdin.read() if path == "-" else open(path, encoding="utf-8").read()
     lines = [l for l in raw.splitlines() if l.strip() and not l.lstrip().startswith("#")]
     if not lines:
@@ -180,9 +200,13 @@ def read_rows(path):
         if len(cells) < len(cols):
             cells += [""] * (len(cols) - len(cells))
         r = dict(zip(cols, [c.strip() for c in cells]))
-        r["views"] = parse_count(r.get("views", "")) or 0
-        for k in ("followers", "median"):
-            r[k] = parse_count(r.get(k, "") or "")
+        for k in ("views", "followers", "median"):
+            raw_cell = r.get(k, "") or ""
+            r[k] = parse_count(raw_cell)
+            if raw_cell and r[k] is None:
+                col = MSG[lang].get("col_names", {}).get(k, k)
+                print(MSG[lang]["bad_count"].format(v=raw_cell, c=col), file=sys.stderr)
+        r["views"] = r["views"] or 0
         if r["views"] and r.get("hook"):
             rows.append(r)
     return rows
@@ -286,7 +310,7 @@ def main():
     lang = args.lang
     m = MSG[lang]
 
-    rows = read_rows(args.input)
+    rows = read_rows(args.input, lang)
     if not rows:
         print(m["no_rows"], file=sys.stderr)
         sys.exit(2)

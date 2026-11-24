@@ -108,6 +108,10 @@ EN = {
         "use", "build", "make", "write", "send", "take", "start", "quit",
         "never", "always", "don't", "dont", "do", "put", "run", "check",
     },
+    # Se quita el posesivo antes de comparar las aperturas débiles, para que
+    # "Today's" e "In today's" sigan cayendo en "today" e "in today", como en el
+    # original, sin volver a comparar por prefijo ("Your" no es "yo").
+    "opener_strip_re": re.compile(r"['’]s$"),
     "you_re": re.compile(r"\b(you|your|you're|youre|yourself)\b"),
     "you_words": set(),
     "me_re": re.compile(r"\b(i|my|me|we|our)\b"),
@@ -167,9 +171,10 @@ ES = {
         r"|d[ií]as?\b|semanas?\b|mes(?:es)?\b|años?\b|euros?\b|d[oó]lares\b"
         r"|pesos\b|mil\b|millones\b)?",
         re.IGNORECASE),
-    # Una mayúscula detrás de ¿ o ¡ es inicio de frase, no un nombre propio.
-    "proper_re": re.compile(r"(?<!^)(?<![¿¡])(?<![.!?] )(?<![.!?]\n)\b[" + UPPER + r"]["
-                           + LOWER + r"]{2,}\b"),
+    # Una mayúscula detrás de ¿ o ¡, de un punto o de unas comillas de apertura
+    # («Nadie te dice esto») es inicio de frase, no un nombre propio.
+    "proper_re": re.compile(r"(?<!^)(?<![¿¡])(?<![.!?] )(?<![.!?]\n)(?<![«“\"'‘(])"
+                           r"(?<![«“\"'‘][¿¡])\b[" + UPPER + r"][" + LOWER + r"]{2,}\b"),
     # Números dichos en voz alta. "uno", "una" y "primer" no están a propósito:
     # casi siempre son relleno, no una cantidad.
     "spoken_numbers": {
@@ -222,13 +227,29 @@ ES = {
         "habeis", "sabias", "te has", "os habeis", "en este", "esto es", "es que",
         "hay", "ya sabes", "que tal", "si alguna",
     ],
+    # Aperturas que solo son débiles cuando son saludo: "Buenas noticias" y
+    # "¿Qué tal si...?" no lo son. Se comprueban contra el texto original.
+    "weak_opener_guard": {
+        "buenas": re.compile(r"(?i)^\W*buenas(?=\s*(?:[,!.?]|$)|\s+(?:tardes|noches|d[ií]as"
+                             r"|a\s+tod[oa]s|gente|chic[oa]s)\b)"),
+        "que tal": re.compile(r"(?i)^\W*qu[eé] tal(?!\s+si\b)"),
+    },
     "imperatives": {
         "deja", "dejad", "roba", "robad", "copia", "borra", "elimina", "prueba",
         "lee", "guarda", "usa", "haz", "crea", "escribe", "manda", "envia", "toma",
-        "empieza", "nunca", "siempre", "no", "pon", "revisa", "apunta", "olvida",
+        "empieza", "pon", "revisa", "apunta", "olvida",
         "evita", "cambia", "sube", "cobra", "publica", "graba", "corta", "quita",
         "aprende", "fijate", "di", "pide", "piensa", "imagina", "dejad", "ve",
     },
+    # "No", "nunca" y "siempre" solo abren un imperativo si les sigue un
+    # subjuntivo de segunda persona o un imperativo ("No hagas", "Nunca cobres",
+    # "Siempre cobra"). "No tengo", "No sé" o "Nunca cobré" son primera persona.
+    "neg_imperatives": {"no", "nunca", "siempre"},
+    "neg_imp_next_re": re.compile(r"^\w{2,}(?:as|es|ais|eis)$"),
+    "neg_imp_next_skip": {"antes", "todas", "cuantas", "tantas", "muchas", "pocas", "otras",
+                          "ciertas", "algunas", "mientras", "entonces", "jamas", "gracias",
+                          "veces", "cosas", "personas", "horas", "ademas", "despues"},
+    "clitics": {"me", "te", "lo", "la", "los", "las", "le", "les", "nos", "os", "se"},
     # Imperativo con pronombre pegado: "róbame", "guárdalo", "dímelo".
     "enclitic_re": re.compile(r"^(\w{2,}?)(?:me|te|lo|la|los|las|le|les|nos|melo|mela|telo|tela)$"),
     # Español omite el pronombre, así que se buscan también formas verbales de
@@ -243,25 +264,49 @@ ES = {
         "has", "hayas", "deberías", "deberias", "podrías", "podrias", "harías",
         "quieras", "tengas", "seas", "estés", "hiciste", "perdiste", "ganaste",
         "cobraste", "pagaste", "sabías", "sabias", "habéis", "sois", "tenéis",
-        "hacéis", "sabéis", "queréis", "podéis",
+        "hacéis", "sabéis", "queréis", "podéis", "vendiste", "publicaste", "facturaste",
+        "fuiste", "diste",
         # voseo
         "vos", "sos", "tenés", "sabés", "querés", "podés", "hacés", "vendés", "cobrás",
-        "necesitás", "estás", "pensás", "creés",
+        "necesitás", "estás", "pensás", "creés", "ganás", "facturás", "mirá",
     },
+    # "ganas" y "facturas" también son sustantivos ("tengo ganas", "las facturas
+    # que nadie paga"): solo cuentan como segunda persona al principio, detrás
+    # de ¿ o detrás de "si".
+    "you_lead_re": re.compile(r"(?:^[\W_]*|¿\s*|\bsi\s+)(?:ganas|facturas)\b"),
+    # Pretérito de segunda persona sin pronombre: "facturaste", "vendiste".
+    "you_suffix_re": re.compile(r"^\w{3,}(?:aste|iste)$"),
+    "you_suffix_skip": {"triste", "chiste", "existe", "insiste", "consiste", "resiste",
+                        "persiste", "asiste", "embiste", "contraste", "desgaste", "despiste",
+                        "subsiste", "desiste", "coexiste", "alpiste"},
+    # Voseo con tilde: "facturás", "ganás", "tenés", "decís".
+    "vos_suffix_re": re.compile(r"^\w{2,}(?:ás|és|ís)$"),
+    "vos_suffix_skip": {"además", "después", "jamás", "atrás", "detrás", "quizás", "demás",
+                        "través", "revés", "inglés", "francés", "japonés", "portugués",
+                        "holandés", "escocés", "irlandés", "danés", "finlandés", "libanés",
+                        "aragonés", "cordobés", "interés", "estrés", "país", "anís", "compás",
+                        "ciprés", "marqués", "cortés", "burgués", "tomás", "andrés", "inés",
+                        "moisés", "mamás", "papás", "sofás", "bebés", "cafés", "purés",
+                        "comités", "clichés", "carnés", "esquís", "rubís", "ajís", "manís",
+                        "jabalís", "colibrís", "maniquís", "bisturís"},
     "me_re": re.compile(r"\b(yo|mi|mis|me|mí|conmigo|nosotros|nosotras|nuestro|nuestra"
                         r"|nuestros|nuestras|nos)\b"),
     "me_words": {
         "tengo", "hago", "cobro", "vendo", "pierdo", "gano", "creo", "pienso", "sé",
         "soy", "estoy", "voy", "llevo", "he", "había", "hice", "tuve", "fui", "dije",
         "puse", "vine", "quise", "supe", "pude", "hemos", "perdimos", "ganamos",
-        "cobramos", "pagamos", "facturamos",
+        "cobramos", "pagamos", "facturamos", "quiero", "puedo", "necesito",
     },
     # Pretérito en primera persona: "perdí", "gané", "cobré".
     "me_suffix_re": re.compile(r"^\w{2,}[éí]$"),
     "me_suffix_skip": {"aquí", "allí", "ahí", "así", "sí", "qué", "café", "bebé",
-                       "rubí", "esquí", "maní", "ají", "menú", "porqué"},
+                       "rubí", "esquí", "maní", "ají", "menú", "porqué",
+                       # nombres y sustantivos que acaban en -é/-í
+                       "josé", "josue", "josué", "rené", "noé", "andré", "dubái", "haití",
+                       "carné", "cliché", "comité", "puré", "maniquí", "colibrí", "jabalí",
+                       "bisturí"},
     "dealbreakers": [
-        (re.compile(r"(?i)^\s*(?:deja de hacer scroll|para de hacer scroll|no hagas scroll"
+        (re.compile(r"(?i)^\s*[¡¿]?\s*(?:deja de hacer scroll|para de hacer scroll|no hagas scroll"
                     r"|deja de deslizar|no sigas (?:bajando|deslizando)"
                     r"|espera,? no (?:hagas scroll|deslices|pases))"),
          "Abre con «deja de hacer scroll». Pedir atención demuestra que no te la has ganado."),
@@ -269,7 +314,11 @@ ES = {
                     r"|hoy (?:te|os|les) voy a (?:enseñar|ensenar|mostrar|contar|explicar)"
                     r"|(?:te|os|les) voy a (?:enseñar|ensenar|mostrar|explicar) c[oó]mo)\b"),
          "Preámbulo de vídeo. Bórralo y abre con el resultado."),
-        (re.compile(r"(?i)^\s*[¡¿]?\s*(?:hola|buenas|qu[eé] tal|hey|ey|bienvenid[oa]s?)\b"),
+        # "Buenas noticias" y "¿Qué tal si...?" no son saludos.
+        (re.compile(r"(?i)^\s*[¡¿]?\s*(?:hola|hey|ey|bienvenid[oa]s?"
+                    r"|buenas(?=\s*(?:[,!.?]|$)|\s+(?:tardes|noches|d[ií]as|a\s+tod[oa]s"
+                    r"|gente|chic[oa]s)\b)"
+                    r"|qu[eé] tal(?!\s+si\b))\b"),
          "Saludo. Nadie entra al feed para que le saluden."),
         (HASHTAG_RE,
          "Hashtag en el gancho. Los hashtags van al final del texto, si es que van."),
@@ -381,11 +430,16 @@ def check_frontload(text, L, lang):
     if not w:
         return 0.0, L["msg"]["empty"]
     low = [norm(x, L) for x in w]
-    opener = " ".join(low[:2])
+    strip = L.get("opener_strip_re")
+    head = [strip.sub("", t) for t in low[:2]] if strip else low[:2]
+    opener = " ".join(head)
+    guard = L.get("weak_opener_guard", {})
     penalty, hit_opener = 0, None
     for weak in L["weak_openers"]:
         # Palabra completa: "yo" no debe atrapar "your", ni "hi" a "his".
-        if opener == weak or opener.startswith(weak + " ") or low[0] == weak:
+        if opener == weak or opener.startswith(weak + " ") or head[0] == weak:
+            if weak in guard and not guard[weak].search(text):
+                continue
             penalty, hit_opener = 30, weak
             break
     payload = None
@@ -412,11 +466,26 @@ def check_address(text, L, lang):
     toks = [x.lower().strip("'’") for x in words(text, lang)]
     if L["you_re"].search(low) or any(t in L["you_words"] for t in toks):
         return 100.0, L["msg"]["addr_you"]
+    you_lead = L.get("you_lead_re")
+    if you_lead and you_lead.search(low):
+        return 100.0, L["msg"]["addr_you"]
+    for rx, skip_key in (("you_suffix_re", "you_suffix_skip"), ("vos_suffix_re", "vos_suffix_skip")):
+        if L.get(rx) and any(L[rx].match(t) and t not in L[skip_key] for t in toks):
+            return 100.0, L["msg"]["addr_you"]
     first = norm(toks[0], L) if toks else ""
     enc = L.get("enclitic_re")
     stem = enc.match(first).group(1) if enc and enc.match(first) else None
     if first in L["imperatives"] or (stem and stem in L["imperatives"]):
         return 90.0, L["msg"]["addr_imp"].format(w=toks[0])
+    if first in L.get("neg_imperatives", ()):
+        # Se saltan los pronombres: "No lo hagas", "No se lo digas".
+        rest = [norm(t, L) for t in toks[1:]]
+        while rest and rest[0] in L["clitics"]:
+            rest.pop(0)
+        nxt = rest[0] if rest else ""
+        if nxt and nxt not in L["neg_imp_next_skip"] and (
+                L["neg_imp_next_re"].match(nxt) or nxt in L["imperatives"]):
+            return 90.0, L["msg"]["addr_imp"].format(w=toks[0])
     me_suffix = L.get("me_suffix_re")
     skip = L.get("me_suffix_skip", set())
     if (L["me_re"].search(low) or any(t in L["me_words"] for t in toks)

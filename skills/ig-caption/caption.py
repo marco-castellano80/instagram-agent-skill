@@ -128,25 +128,38 @@ EN = {
 }
 
 ES = {
-    # Una mayúscula detrás de ¿ o ¡ es inicio de frase, no un nombre.
+    # Una mayúscula a principio de línea, detrás de ¿ o ¡, detrás de un punto
+    # (inicio de frase) o detrás de unas comillas de apertura no es un nombre.
+    # El mismo patrón que hookscore.py y beats.py, para que coincidan.
     "concrete_re": re.compile(
-        r"[$€£]\s?\d|\b\d[\d,.]*\b|(?<!^)(?<![¿¡])\b[" + UPPER + r"][" + LOWER + r"]{2,}\b",
+        r"[$€£]\s?\d|\b\d[\d,.]*\b"
+        r"|(?<!^)(?<![¿¡])(?<![.!?] )(?<![.!?]\n)(?<![«“\"'‘(])(?<![«“\"'‘][¿¡])"
+        r"\b[" + UPPER + r"][" + LOWER + r"]{2,}\b",
         re.MULTILINE),
     "asks": [
-        (re.compile(r"(?i)\bcomenta (?:la palabra |aqu[ií] )?[\"“'«]?[" + UPPER + r"0-9]{2,}\b"
-                    r"|\bescribe [\"“'«]?\w+[\"”'»]? en (?:los )?comentarios\b"),
+        # Solo el verbo ignora mayúsculas: la palabra clave tiene que ir en
+        # mayúsculas ("Comenta CONTRATO" sí; "Comenta abajo" o "Comenta «la guía
+        # del contrato»" no son una palabra clave).
+        (re.compile(r"\b(?i:comenta)\s+(?:(?i:la palabra|aqu[ií])\s+)?[\"“'«]?[" + UPPER
+                    + r"0-9]{2,}\b"
+                    r"|\b(?i:escribe)\s+[\"“'«]?[" + UPPER + r"0-9]{2,}[\"”'»]?\s+"
+                    r"(?i:en\s+(?:los\s+)?comentarios)\b"),
          "comentar una palabra clave"),
-        (re.compile(r"(?i)\b(?:escr[ií]beme|m[aá]ndame|env[ií]ame)(?: un)? (?:dm|md|mensaje|privado)\b"
-                    r"|\bpor (?:dm|md|privado)\b"),
+        # Tiene que ser una petición al autor. "...y te lo mando por privado" es
+        # cómo llega el regalo de la palabra clave, no una segunda petición.
+        (re.compile(r"(?i)\b(?:escr[ií]beme|m[aá]ndame|env[ií]ame|h[aá]blame)(?: (?:un|por))?"
+                    r" (?:dm|md|mensaje|privado)\b"),
          "mensaje privado"),
-        (re.compile(r"(?i)\bgu[aá]rd(?:alo|atelo|adlo|ala|atela|aos)\b"
+        (re.compile(r"(?i)\bgu[aá]rd(?:alo|atelo|adlo|ala|atela|aos|ate)\b"
                     r"|\bguarda (?:este|esta|esto|el post|el reel|el carrusel|la publicaci[oó]n)\b"),
          "guardar"),
         (re.compile(r"(?i)\bcomp[aá]rt(?:elo|ela|idlo|ele)\b"
-                    r"|\bcomparte (?:este|esta|esto|el post|el reel|con)\b"),
+                    r"|\bcomparte (?:este|esta|esto|el post|el reel|con)\b"
+                    r"|\b(?:m[aá]nda|env[ií]a|p[aá]sa)sel[oa]s? a\b"),
          "compartir"),
         (re.compile(r"(?i)\bs[ií]gueme\b|\bsigue a @|\bdale a seguir\b"), "seguir"),
-        (re.compile(r"(?i)\b(?:link|enlace) en (?:la |mi )?bio\b"), "enlace en la bio"),
+        (re.compile(r"(?i)\b(?:link|enlace)\s+(?:en|de)\s+(?:la |mi )?(?:bio|perfil)\b"),
+         "enlace en la bio"),
         (re.compile(r"(?i)\bdesliza\b|\bswipe\b|\bpulsa (?:aqu[ií]|el enlace)\b"
                     r"|\btoca (?:aqu[ií]|el enlace)\b"),
          "deslizar o tocar"),
@@ -155,8 +168,12 @@ ES = {
          "responder una pregunta"),
     ],
     "filler": FILLER_ES,
-    "greeting_re": re.compile(r"(?i)^\s*[¡¿]?\s*(?:hola|buenas|buenos d[ií]as|qu[eé] tal|hey|ey"
-                              r"|bienvenid[oa]s?)\b"),
+    # "Buenas" solo es saludo si va sola o con "tardes", "gente"...: "Buenas
+    # noticias" no lo es. "¿Qué tal si...?" es una propuesta, no un saludo.
+    "greeting_re": re.compile(r"(?i)^\s*[¡¿]?\s*(?:hola|buenos d[ií]as|hey|ey|bienvenid[oa]s?"
+                              r"|buenas(?=\s*(?:[,!.?]|$)|\s+(?:tardes|noches|d[ií]as"
+                              r"|a\s+tod[oa]s|gente|chic[oa]s)\b)"
+                              r"|qu[eé] tal(?!\s+si\b))\b"),
     "labels": {"LENGTH": "LONGITUD", "FIRST LINE": "PRIMERA LÍNEA",
                "HOOK IS CONCRETE": "GANCHO CONCRETO", "HASHTAGS": "HASHTAGS",
                "TAG PLACEMENT": "SITIO DE TAGS", "LINKS": "ENLACES", "ONE ASK": "UNA PETICIÓN",
@@ -177,8 +194,8 @@ ES = {
         "fl_ok": "{n} caracteres, se ve entera",
         "concrete": "{n} número(s) o nombre(s) en la ventana visible",
         "concrete_none": " - nada comprobable antes del toque",
-        "tags_over": "{n} hashtags, por encima del tope de {cap} de Instagram. A partir del quinto "
-                     "no cuentan y el bloque suena a 2019",
+        "tags_over": "{n} hashtags, por encima del tope de {cap} de Instagram. Los que pasan del "
+                     "quinto no cuentan y el bloque suena a 2019",
         "tags_cap_filler": "{n} hashtags, en el tope, y {f} genéricos. Gasta los cinco en temas",
         "tags_filler": "{n} hashtags, {f} genéricos ({ex}). Esos no describen nada",
         "tags_ok": "{n} hashtag(s)",
