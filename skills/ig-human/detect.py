@@ -106,14 +106,30 @@ LANG = {
 }
 
 
+LEX_MISSING = {
+    "en": "error: language lexicon not found: {p}\n"
+          "Pass the right path with --lexicon-lang.",
+    "es": "error: no se encuentra el léxico del idioma «{lang}»: {p}\n"
+          "Sin él se puntuaría un texto en español con el léxico inglés. Indica la ruta "
+          "correcta con --lexicon-lang, o usa --lang en si el texto está en inglés.",
+}
+
+
 def load_lexicon(path=LEX, lang=DEFAULT_LANG, overlay=None):
-    """slop.json da invisibles y tipografía; slop.<lang>.json, si existe y el
-    idioma no es inglés, sustituye palabras, frases y estructuras."""
+    """slop.json da invisibles y tipografía; slop.<lang>.json (obligatorio si el
+    idioma no es inglés) sustituye palabras, frases y estructuras.
+
+    Si falta el léxico del idioma, sale con código 2 (0 y 1 son APTO y no
+    APTO) en vez de seguir en silencio con las palabras inglesas."""
     with open(path, encoding="utf-8") as fh:
         lex = json.load(fh)
     if overlay is None and lang != "en":
         overlay = os.path.join(os.path.dirname(os.path.abspath(path)), f"slop.{lang}.json")
-    if overlay and os.path.exists(overlay):
+    if overlay and not os.path.isfile(overlay):
+        print(LEX_MISSING.get(lang, LEX_MISSING["en"]).format(p=overlay, lang=lang),
+              file=sys.stderr)
+        sys.exit(2)
+    if overlay:
         with open(overlay, encoding="utf-8") as fh:
             extra = json.load(fh)
         for key in ("invisible", "typographic", "words", "phrases", "structures"):

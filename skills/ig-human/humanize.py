@@ -51,6 +51,20 @@ SENT_RE = re.compile(r"(?:[^.!?\n]|(?<=\d)\.(?=\d))+[.!?]*")
 LETTER = r"[^\W\d_]"
 OPENERS = "¿¡\"'«(“"
 
+# Marca temporal que el paso léxico deja donde borra una entrada, para que la
+# limpieza de puntuación huérfana actúe solo ahí. Es un carácter de control que
+# no es letra: ninguna entrada del léxico puede coincidir con él.
+DEL = "\x01"
+# Pasadas del léxico como máximo (ver pass_lexical).
+MAX_SWEEPS = 3
+
+# Abreviaturas tras las que ". " no abre frase, así que restore_capitals no
+# pone mayúscula detrás: una letra sola ("p. ej.", "a. m.", "p. m.", "e.g.",
+# "i.e."), dos mayúsculas iguales de plural ("EE. UU.", "FF. AA.") y unas
+# cuantas comunes ("etc.", "aprox.").
+ABBR_END = re.compile(r"\b(?:[^\W\d_]|([A-ZÁÉÍÓÚÑ])\1"
+                      r"|(?i:etc|ej|aprox|approx|vs|pág|págs|núm|cf))\.[ \t]$")
+
 # Una raya seguida de un conector ("es importante — además, es una prueba")
 # daría una frase empalmada al convertirse en coma. Solo en ese caso se
 # convierte en punto. Incluye los conectores de relleno que el léxico cambia
@@ -103,14 +117,30 @@ MSG = {
 }
 
 
+LEX_MISSING = {
+    "en": "error: language lexicon not found: {p}\n"
+          "Pass the right path with --lexicon-lang.",
+    "es": "error: no se encuentra el léxico del idioma «{lang}»: {p}\n"
+          "Sin él se aplicaría el léxico inglés a un texto en español. Indica la ruta "
+          "correcta con --lexicon-lang, o usa --lang en si el texto está en inglés.",
+}
+
+
 def load_lexicon(path=LEX, lang=DEFAULT_LANG, overlay=None):
-    """slop.json da invisibles y tipografía; slop.<lang>.json, si existe y el
-    idioma no es inglés, sustituye palabras, frases y estructuras."""
+    """slop.json da invisibles y tipografía; slop.<lang>.json (obligatorio si el
+    idioma no es inglés) sustituye palabras, frases y estructuras.
+
+    Si falta el léxico del idioma, sale con código 2 en vez de seguir en
+    silencio con las palabras inglesas sobre un texto que no lo es."""
     with open(path, encoding="utf-8") as fh:
         lex = json.load(fh)
     if overlay is None and lang != "en":
         overlay = os.path.join(os.path.dirname(os.path.abspath(path)), f"slop.{lang}.json")
-    if overlay and os.path.exists(overlay):
+    if overlay and not os.path.isfile(overlay):
+        print(LEX_MISSING.get(lang, LEX_MISSING["en"]).format(p=overlay, lang=lang),
+              file=sys.stderr)
+        sys.exit(2)
+    if overlay:
         with open(overlay, encoding="utf-8") as fh:
             extra = json.load(fh)
         for key in ("invisible", "typographic", "words", "phrases", "structures"):
@@ -166,8 +196,29 @@ def pass_invisible(text, lex, m):
     return text, hits
 
 
+def _splice_alternatives(lex, lang):
+    """Conectores que, detrás de una raya, piden punto en vez de coma.
+
+    Son los de SPLICE más las frases del léxico que el paso léxico convertirá
+    después en uno de ellos ("al final del día" -> "al final"): el empalme se
+    resuelve aquí, antes de que el léxico cambie la frase, así que hay que
+    reconocer también la forma original. Se sacan del léxico cargado para no
+    depender de una lista a mano."""
+    base = re.compile(r"(?:" + SPLICE[lang] + r")", re.IGNORECASE)
+    sources = {e["find"].lower() for e in lex.get("phrases", []) + lex.get("words", [])
+               if e.get("replace") and base.fullmatch(e["replace"].strip())}
+    alts = [re.escape(f).replace(r"\ ", r"[ \t]+") for f in sorted(sources, key=len, reverse=True)]
+    return "|".join(alts + [SPLICE[lang]])
+
+
+def _promote_splice(mm):
+    """", además," -> ". Además," (el conector pasa a abrir frase)."""
+    return ". " + mm.group(1)[0].upper() + mm.group(1)[1:] + ", "
+
+
 def pass_typographic(text, lex, m, lang=DEFAULT_LANG):
     hits = []
+    splice = _splice_alternatives(lex, lang)
     for entry in lex["typographic"]:
         ch = entry["from"]
         n = len(re.findall(r"[ \t]+·[ \t]+", text)) if ch == "·" else text.count(ch)
@@ -175,26 +226,39 @@ def pass_typographic(text, lex, m, lang=DEFAULT_LANG):
             continue
         hits.append({"name": f"{ch} {entry['name']}", "count": n,
                      "to": entry["to"].strip() or m["space"]})
+        # En todas las reglas de raya y semirraya el espacio es [ \t], nunca \s:
+        # con \s la regla se comía el salto de línea y pegaba cada línea a la
+        # anterior con una coma.
         if ch == "—":
-            text = re.sub(r"[ \t]*—[ \t]*(" + SPLICE[lang] + r")[ \t]*,[ \t]*",
-                          lambda mm: ". " + mm.group(1)[0].upper() + mm.group(1)[1:] + ", ",
+            # Raya a principio de línea (diálogo "—Hola" / "— Hola", o viñeta
+            # "— punto"): se quita con su espacio, sin coma y sin unir líneas.
+            text = re.sub(r"(?m)^([ \t]*)—[ \t]*", r"\1", text)
+            # El conector puede cerrarse con coma o con otra raya ("— además —").
+            text = re.sub(r"[ \t]*—[ \t]*(" + splice + r")[ \t]*[,—][ \t]*", _promote_splice,
                           text, flags=re.IGNORECASE)
+            # Justo después de cerrar frase basta un espacio: "Funciona. — Hay"
+            # no debe quedar en "Funciona., Hay".
+            text = re.sub(r"(?<=[.!?])[ \t]*—[ \t]*", " ", text)
             # " palabra — palabra " y "palabra—palabra" quedan en coma + espacio.
-            text = re.sub(r"\s*—\s*", ", ", text)
+            text = re.sub(r"[ \t]*—[ \t]*", ", ", text)
         elif ch == "·":
             # Solo como separador entre espacios: la "l·l" catalana se queda.
             text = re.sub(r"[ \t]+·[ \t]+", " " + entry["to"] + " ", text)
         elif ch == "–":
-            text = re.sub(r"\s*–\s*(?=\d)", "-", text)      # 5–10 -> 5-10
-            text = re.sub(r"\s+–\s+", ", ", text)            # usada como raya
+            # Semirraya-viñeta a principio de línea ("– punto"): igual que la raya.
+            text = re.sub(r"(?m)^([ \t]*)–[ \t]+", r"\1", text)
+            # Semirraya espaciada usada como raya: mismo arreglo del empalme.
+            text = re.sub(r"[ \t]+–[ \t]+(" + splice + r")[ \t]*(?:,|–(?=[ \t]))[ \t]*",
+                          _promote_splice, text, flags=re.IGNORECASE)
+            text = re.sub(r"[ \t]*–[ \t]*(?=\d)", "-", text)    # 5–10 -> 5-10
+            text = re.sub(r"(?<=[.!?])[ \t]+–[ \t]+", " ", text)
+            text = re.sub(r"[ \t]+–[ \t]+", ", ", text)        # usada como raya
             text = text.replace("–", "-")
         else:
             text = text.replace(ch, entry["to"])
     # Una coma insertada delante de otra puntuación queda mal.
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)
     text = re.sub(r",\s*\n", "\n", text)
-    # Una raya al principio de línea (diálogo o lista) deja una coma huérfana.
-    text = re.sub(r"(?m)^,\s*", "", text)
     return text, hits
 
 
@@ -209,20 +273,51 @@ def _match_case(src, repl):
 
 
 def pass_lexical(text, lex, lang, m):
-    """Sustituye palabras y frases de relleno. Las más largas primero para que ganen las frases."""
-    hits = []
+    """Sustituye palabras y frases de relleno. Las más largas primero para que ganen las frases.
+
+    Se repite la pasada (hasta MAX_SWEEPS veces) mientras cambie algo: una
+    sustitución corta puede formar una entrada más larga que ya se había
+    revisado ("es fundamental tener en cuenta que" -> "es importante tener en
+    cuenta que", que también es relleno)."""
+    hits = {}
     entries = sorted(lex["phrases"] + lex["words"],
                      key=lambda e: len(e["find"]), reverse=True)
-    for entry in entries:
-        find = entry["find"]
-        pattern = re.compile(r"\b" + re.escape(find).replace(r"\ ", r"\s+") + r"\b",
-                             re.IGNORECASE)
-        found = pattern.findall(text)
-        if not found:
-            continue
-        hits.append({"find": find, "replace": entry["replace"] or m["deleted"],
-                     "count": len(found), "family": entry["family"]})
-        text = pattern.sub(lambda mm: _match_case(mm.group(0), entry["replace"]), text)
+    # Entre palabras de una frase vale también la marca de borrado: para el
+    # patrón, un borrado cuenta como el hueco vacío que dejaba antes.
+    gap = r"[\s" + DEL + r"]+"
+    compiled = [(e, re.compile(r"\b" + re.escape(e["find"]).replace(r"\ ", gap) + r"\b",
+                               re.IGNORECASE)) for e in entries]
+    text = text.replace(DEL, "")                       # la marca no puede venir de fuera
+    for sweep in range(MAX_SWEEPS):
+        before = text
+        for entry, pattern in compiled:
+            found = pattern.findall(text)
+            if not found:
+                continue
+            # Un borrado deja la marca DEL en su sitio (ver más abajo).
+            new = pattern.sub(lambda mm, r=entry["replace"]: _match_case(mm.group(0), r) or DEL,
+                              text)
+            if sweep and new == text:
+                continue                               # no contar dos veces lo mismo
+            find = entry["find"]
+            if find in hits:
+                hits[find]["count"] += len(found)
+            else:
+                hits[find] = {"find": find, "replace": entry["replace"] or m["deleted"],
+                              "count": len(found), "family": entry["family"]}
+            text = new
+        if text == before:
+            break
+    hits = list(hits.values())
+    # Borrar una cláusula justo detrás de un punto deja "Funciona. , hay", que
+    # la limpieza de abajo junta en "Funciona., hay". Esa puntuación huérfana se
+    # quita SOLO donde hubo un borrado (junto a la marca DEL): una regla general
+    # sobre ".," se comería la coma de "e.g.,", "EE. UU.,", "a. m.," o "p. ej.,",
+    # y ninguna lista de abreviaturas las cubre todas.
+    orphan = r"([.!?])(?:[ \t]*" + DEL + r")+[ \t]*[,;:]+[ \t]*"
+    text = re.sub(orphan + r"(?=\n|$)", r"\1", text)
+    text = re.sub(orphan, r"\1 ", text)
+    text = text.replace(DEL, "")
     # Limpieza después de borrar. Borrar una cláusula entera deja puntuación
     # huérfana ("sistema. ." o una línea que ahora empieza por coma), y eso se
     # lee peor que el relleno.
@@ -238,8 +333,6 @@ def pass_lexical(text, lex, lang, m):
     # Borrar todo lo que había entre ¡ y ! (o ¿ y ?) deja los signos solos.
     text = re.sub(r"(?m)^[ \t]*[¡¿][ \t]*[!?]+[ \t]*(?:\n|$)", "", text)
     text = re.sub(r"[ \t]*[¡¿][ \t]*[!?]+", "", text)
-    # "Funciona., hay" -> "Funciona. hay" (respeta "etc.," y "p. ej.,")
-    text = re.sub(r"(?<!etc)(?<!ej)(?<!aprox)([.!?])[ \t]*[,;:]+[ \t]*", r"\1 ", text)
     text = re.sub(r"\.\s*\.+", ".", text)
     text = re.sub(r"([!?])\s*\.", r"\1", text)
     text = text.replace("\x00ELL\x00", "...")
@@ -281,8 +374,16 @@ def restore_capitals(original, text):
     starts = re.findall(r"(?:^|[.!?]\s+|\n)\s*" + lead + "(" + LETTER + ")", original)
     if not starts or sum(1 for c in starts if c.isupper()) * 2 < len(starts):
         return text
+
+    def up(mm):
+        # El punto de una abreviatura no cierra frase: "p. ej.", "a. m.",
+        # "EE. UU.", "etc." se quedan como están.
+        if ABBR_END.search(text, max(0, mm.start() - 8), mm.start()):
+            return mm.group(0)
+        return mm.group(1) + mm.group(2).upper()
+
     return re.sub(r"(?:^|(?<=[.!?] )|(?<=[.!?]\n)|(?<=\n))(\s*" + lead + ")(" + LETTER + ")",
-                  lambda mm: mm.group(1) + mm.group(2).upper(), text)
+                  up, text)
 
 
 def humanize(text, lex, lang=DEFAULT_LANG):
